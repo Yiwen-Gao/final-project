@@ -128,7 +128,7 @@ nsCertType = client, email
 nsComment = "OpenSSL Generated Certificate"
 subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid,issuer
-keyUsage = critical, dataEncipherment
+keyUsage = critical, digitalSignature, dataEncipherment
 subjectAltName = IP:127.0.0.1
 
 [ signing_cert ]
