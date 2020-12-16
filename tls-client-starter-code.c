@@ -11,7 +11,6 @@
 #include <openssl/err.h>
 
 
-
 /*
  * Compile with -lssl -lcrypto
  *
