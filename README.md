@@ -16,3 +16,5 @@ to use for the client and server.
 IntermediateCA for the intermediate one. 
 -when setting up the client and server certificates, you'd want to enter something as a command line argument
 to identify the certificates, enter that same thing as the common name.
+-feel free to replace anything I've done from your HW2 implementation, I'm sure there's things that could
+be improved upon
