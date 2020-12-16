@@ -17,7 +17,7 @@
  */
 
 int
-main(int argc, char *argv)
+main(int argc, char **argv)
 {
 	SSL_CTX *ctx;
 	SSL *ssl;
