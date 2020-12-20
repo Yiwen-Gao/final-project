@@ -24,7 +24,7 @@ static void prepare_mntns(char *rootfs)
         die("Failed to umount put_old %s: %m\n", put_old);
 }
 
-void mail_exec(int **fd){
+static void mail_exec(int **fd){
   unshare(CLONE_NEWNS);
   prepare_mntns("/mail/");
   int p[2][2] = fd;
@@ -35,16 +35,32 @@ void mail_exec(int **fd){
   }
 }
 
-void password_exec(int **fd){
+static void password_exec(int **fd){
   unshare(CLONE_NEWNS);
   prepare_mntns("/pass/");
   int p[2][2] = fd;
   close(p[0][0]);
   close(p[1][1]);
   while(read(p[1][0]), buffer, sizeof(buffer)){
-    // new process fork and exec to send message
+    // new process fork and exec to access password store
   }
 }
+
+static void ca_exec(int **fd){
+  unshare(CLONE_NEWNS);
+  prepare_mntns("/ca/");
+  int p[2][2] = fd;
+  close(p[0][0]);
+  close(p[1][1]);
+  while(read(p[1][0]), buffer, sizeof(buffer)){
+    // new process form and exec to access cert store
+  }
+}
+
+#define STACK (1024*1024)
+static char mstack[STACK];
+static char pstack[STACK];
+static char cstack[STACK];
 
 void setup_spaces(){
   int flags = CLONE_NEWPID | CLONE_NEWNET | CLONE_NEWUTS | CLONE_NEWUSER;
@@ -54,19 +70,19 @@ void setup_spaces(){
 
   pipe(mpipe[0]);
   pipe(mpipe[1]);
-  clone(mail_exec, stack, flags, &mpipe);
+  clone(mail_exec, mstack+STACK, flags, &mpipe);
   close(mpipe[0][1]);
   close(mpipe[1][0]);
 
   pipe(ppipe[0]);
   pipe(ppipe[1]);
-  clone(password_exec, stack, flags, &ppipe);
+  clone(password_exec, pstack+STACK, flags, &ppipe);
   close(ppipe[0][1]);
   close(ppipe[1][0]);
 
   pipe(cpipe[0]);
   pipe(cpipe[1]);
-  clone(ca_exec, stack, flags, &cpipe);
+  clone(ca_exec, cstack+STACK, flags, &cpipe);
   close(cpipe[0][1]);
   close(cpipe[1][0]);
 }
