@@ -35,14 +35,18 @@ config file (intermediateopenss.cnf), I added digitalSignature, and it already h
 not sure how to specify that it's a TLS certificate. 
 
 ## Server
--bellovin/: username and password information that Bellovin provided
+-bellovin/: Bellovin's provided usernames and passwords 
 
 -users.csv: formatted storage of usernames, salts, and passwords
 
--usergen.py: update users.csv with fresh copy of original usernames and passwords
+-usergen.py: update users.csv with fresh copy of original usernames and passwords 
 
--changepw.py: change a user's password
-usage: python3 changepw.py <username> <password>
+usage: `$ python3 usergen.py`
 
--verifypw.py: verify a user's password
-usage: python3 verifypw.py <username> <password>
+-changepw.py: change a user's password 
+
+usage: `$ python3 changepw.py <username> <password>`
+
+-verifypw.py: verify a user's password 
+
+usage: `$ python3 verifypw.py <username> <password>`
