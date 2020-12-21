@@ -16,9 +16,7 @@
  *
  */
 
-int
-main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
 	SSL_CTX *ctx;
 	SSL *ssl;
 	const SSL_METHOD *meth;

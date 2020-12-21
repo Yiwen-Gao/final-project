@@ -4,7 +4,7 @@ import csv
 import dbmanager
 
 data = []
-with open('bellovin/user-info.txt') as f:
+with open('bellovin/userinfo.txt') as f:
     data = [row.split() for row in f]
 
 users = [None] * len(data)

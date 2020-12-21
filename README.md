@@ -1,6 +1,10 @@
 # final-project
 
-## Certificates
+## Dependencies
+Install the following libraries before starting the CA, client, or server.
+`$ sudo apt-get install libssl-dev`
+
+## CA
 What I've added:
 -Makefile
 -TLS client starter code

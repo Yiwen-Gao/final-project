@@ -7,7 +7,7 @@ import secrets
 import string
 import sys
 
-DBNAME = 'users.csv'
+DB_NAME = 'passwords.csv'
 COL_HEADERS = ['username', 'salt', 'hashed_password']
 
 class User:
@@ -41,7 +41,7 @@ def update_user(username, password):
 
 def select_all_users():
     users = []
-    with open(DBNAME) as f:
+    with open(DB_NAME) as f:
         reader = csv.reader(f, delimiter=',')
         data = list(reader)
         for i, row in enumerate(data):
@@ -52,7 +52,7 @@ def select_all_users():
 
 def update_all_users(users):
     rows = [[u.username, u.salt, u.hashed_password] for u in users]
-    with open(DBNAME, 'w') as f:
+    with open(DB_NAME, 'w') as f:
         writer = csv.writer(f)
         writer.writerow(COL_HEADERS)
         writer.writerows(rows)
