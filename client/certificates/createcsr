@@ -1,0 +1,5 @@
+#!/bin/bash
+#remove previous csr structure
+rm -rf csr
+
+mkdir csr
