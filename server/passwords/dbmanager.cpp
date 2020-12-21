@@ -5,7 +5,7 @@
 
 const std::string DB_NAME = "db.csv";
 
-std::string hash(const std::string &pw, const std::string &salt)
+std::string hash_with_salt(const std::string &pw, const std::string &salt)
 {
 	return "test";
 }
@@ -13,7 +13,7 @@ std::string hash(const std::string &pw, const std::string &salt)
 std::string salt_and_hash(const std::string &pw, std::string &salt)
 {
 	salt = " ";
-	return hash(pw, salt);
+	return hash_with_salt(pw, salt);
 }
 
 int verify_pw(const std::string &username, const std::string &pw)
@@ -37,15 +37,15 @@ int verify_pw(const std::string &username, const std::string &pw)
 		}
 		db.close();
 	}
-	return hash(pw, salt) == hash;
+	return (hash_with_salt(pw, salt) == hash);
 }
 
 int update_user(const std::string &username, const std::string &pw)
 {
 	std::vector<std::string> lines;
-	std::string line;
+	std::string line, name;
 	std::ifstream db (DB_NAME);
-	size_t i = 0;
+	size_t i = 0, first_del;
 	size_t ind = -1;
 	if (db.is_open())
 	{
@@ -75,16 +75,17 @@ int update_user(const std::string &username, const std::string &pw)
 	std::ofstream db_out (DB_NAME);
 	if (db_out.is_open())
 	{
-		for (line : lines)
+		for (std::string to_print : lines)
 		{
-			db_out << line;
+			db_out << to_print;
 		}
 		db_out.close();
 	}
+	return 0;
 
 }
 
 int main(int argc, char* argv[])
 {
-	
+	update_user(argv[1], argv[2]);	
 }
