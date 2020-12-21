@@ -10,11 +10,12 @@
 #include <openssl/bio.h>
 #include <openssl/err.h>
 
-
 /*
  * Compile with -lssl -lcrypto
  *
  */
+
+const int DEFAULT_PORT = 443;
 
 int main(int argc, char **argv) {
 	SSL_CTX *ctx;
@@ -51,16 +52,16 @@ int main(int argc, char **argv) {
 
 	bzero(&sin, sizeof sin);
 	sin.sin_family = AF_INET;
-	sin.sin_port = htons(443);
+	sin.sin_port = htons(DEFAULT_PORT);
 
-	he = gethostbyname("www.cs.columbia.edu");
+	he = gethostbyname("localhost"); // gethostbyname("www.cs.columbia.edu");
 	memcpy(&sin.sin_addr, (struct in_addr *)he->h_addr, he->h_length);
 	if (connect(sock, (struct sockaddr *)&sin, sizeof sin) < 0) {
 		perror("connect");
 		return 2;
 	}
 
-	sbio=BIO_new(BIO_s_socket());
+	sbio = BIO_new(BIO_s_socket());
 	BIO_set_fd(sbio, sock, BIO_NOCLOSE);
 	SSL_set_bio(ssl, sbio, sbio);
 
