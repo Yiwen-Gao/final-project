@@ -1,13 +1,3 @@
-/**
- * <version> <status-code> <text>
-
-	<option-lines>
-
-	<newline>
-
-	<body>
-*/
-
 #include <stdio.h>
 #include <strings.h>
 #include <string.h>
@@ -23,17 +13,22 @@
 
 using namespace std;
 
-// getcert
 // verify username/password, generate cert from csr, and send and store cert 
+void getcert() {
 
-// changepw
-void send_http_resp(BIO *bio, const string &line, const string &host) {
-    string resp = line + "\n\n";
 }
 
-// sendmsg
+void changepw() {
 
-// recvmsg
+}
+
+void sendmsg() {
+
+}
+
+void recvmsg() {
+
+}
 
 int main(int argc, char **argv) {
     const char *CA_CERT = (*argv)++;
@@ -59,7 +54,6 @@ int main(int argc, char **argv) {
 
     meth = TLS_server_method(); // TODO change to SSL?
 	ctx = SSL_CTX_new(meth);
-    ssl = SSL_new(ctx);
 
     /* Load server certificate into the SSL context */
     if (SSL_CTX_use_certificate_file(ctx, SERVER_CERT, SSL_FILETYPE_PEM) <= 0) {
@@ -80,13 +74,19 @@ int main(int argc, char **argv) {
     }
  
     /* Set to require peer (client) certificate verification */
-    SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, verify_callback);
-    /* Set the verification depth to 1 */
+    SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, NULL); // SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, verify_callback);
+    /* Set the verification depth to 1 because client certificate has to be directly signed by CA */
     SSL_CTX_set_verify_depth(ctx, 1);
+
+    ssl = SSL_new(ctx);
 
     sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
     CHK_ERR(sock, "socket");
-    
+
+    sbio=BIO_new(BIO_s_socket());
+    BIO_set_fd(sbio, sock, BIO_NOCLOSE);
+    SSL_set_bio(ssl, sbio, sbio);
+        
     memset(&sa_serv, 0, sizeof(sa_serv));
     sa_serv.sin_family      = AF_INET;
     sa_serv.sin_addr.s_addr = INADDR_ANY;
