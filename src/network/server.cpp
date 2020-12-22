@@ -1,5 +1,6 @@
 #include "conn.h"
 #include "priv.h"
+#include <vector>
 // #include <string>
 // extern "C" {
 //     #include <sys/wait.h>
