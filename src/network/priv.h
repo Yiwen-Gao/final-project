@@ -1,4 +1,4 @@
-#idndef PRIV_H
+#ifndef PRIV_H
 #define PRIV_H
 
 #include <stdio.h>
