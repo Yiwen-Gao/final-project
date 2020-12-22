@@ -47,7 +47,7 @@ void setup_spaces(){
 
 
 
-void getcert(string username, string password, vector<string> csr) {
+void getcert(string username, string password, string csr) {
   char user[50];
   char pass[100];
   strncpy(user, username.c_str(), 50);
@@ -60,9 +60,10 @@ void getcert(string username, string password, vector<string> csr) {
   if(result){
     write(cpipe[1][1], "make", 4);
     write(cpipe[1][1], user, 50);
-    for(string line : csr){
-      write(cpipe[1][1], line.c_str(), line.size());
-    }
+    int l = csr.size();
+    write(cpipe[1][1], &l, csizeof(int));
+    write(cpipe[1][1], csr.c_str(), csr.size());
+    
     write(cpipe[1][1], "getc", 4);
     write(cpipe[1][1], user, 50);
     char cert[8192];
@@ -121,6 +122,7 @@ int main(int argc, char **argv) {
     cout << "user: " << req.user << endl;
     cout << "pass: " << req.password << endl;
     cout << "csr: " << endl << req.csr << endl;
+    getcert(req.user, req.password, req.csr);
     cout << "au revoir" << endl;
 }
 
