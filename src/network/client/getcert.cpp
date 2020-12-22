@@ -9,6 +9,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 
 #include <openssl/ssl.h>
 #include <openssl/bio.h>
@@ -45,7 +46,7 @@ int main(int argc, char **argv) {
 	char ibuf[512];
 
 	//generate the CSR:
-	FILE *tempfp = fopen("./temp", "wb");
+	FILE *tempfp = fopen("temp", "wb");
 	if (tempfp == NULL)
 	{
 		cerr << "unable to open temp file" << endl;
@@ -65,16 +66,51 @@ int main(int argc, char **argv) {
 
 	fclose(tempfp);
 
-	FILE *inputfp = fopen("./input", "wb");
+	FILE *inputfp = fopen("./input.sh", "wb");
 	if (inputfp == NULL)
 	{
 		cerr << "unable to open temp file" << endl;
 	}
 
-	char *bash = "!#/bin/bash\n";
-	fwrite(bash, sizeof(char), strlen(bash), inputfp);
+	string bash = "#!/bin/bash\n\n";
+	fwrite(bash.c_str(), sizeof(char), bash.length(), inputfp);
+	
+	//for testing
+	string testing = "echo hello\n";
+	fwrite(testing.c_str(), sizeof(char), testing.length(), inputfp);
 
-	chmod("input", S_IXGRP | S_IXUSR | S_IXOTH); 
+
+	string command = "./createcsr " + username + " " + password + " " + "< temp";
+	fwrite(command.c_str(), sizeof(char), command.length(), inputfp);
+
+	chmod("input.sh", S_IXGRP | S_IXUSR | S_IXOTH | S_IRGRP | S_IRUSR | S_IWUSR); 
+	
+	//now fork and exec to execute the csr generation
+	pid_t pid = fork();
+	int status;
+	if (pid == -1)
+	{
+		cerr << "fork error" << endl;
+		return 1;
+	} else if (pid == 0)
+	{
+		execl("/bin/sh", "sh", "./input.sh", (char *)0);
+		cerr << "execl failed" << endl;
+		return 1;
+	} else {
+		if (waitpid(pid, &status, 0) > 0)
+		{
+			if (WIFEXITED(status) && WEXITSTATUS(status)){
+				cerr << WEXITSTATUS(status) << endl;
+				if (WEXITSTATUS(status) == 127) {
+					cerr << "execv failed" << endl;
+				}
+			}
+		} else {
+			cerr << "waitpid failed" << endl;
+		}
+	}
+
 
 	//need to delete the temp files when we're done
 
@@ -86,7 +122,7 @@ int main(int argc, char **argv) {
 	if (fp == NULL)
 	{
 		cerr << "Failed to open csr" << endl;
-		return 0;
+		return 1;
 	}
 	
 	int contentlength = username.length() + password.length() + 2;
@@ -178,7 +214,7 @@ int main(int argc, char **argv) {
 	if (certfp == NULL)
 	{
 		cerr << "Unable to write to certificate file" << endl;
-		return 0;
+		return 1;
 	}
 
 	while ((ilen = SSL_read(ssl, ibuf, sizeof ibuf - 1)) > 0) {
@@ -186,7 +222,7 @@ int main(int argc, char **argv) {
 		if (fwrite(ibuf, sizeof(char), ilen, certfp) < 0)
 		{
 			cerr << "Writing to file failed" << endl;
-			return 0;
+			return 1;
 		}
 		printf("%s", ibuf);
 	}
