@@ -127,7 +127,8 @@ static int mail_exec(void *fd){
   int p[2][2] = *((int ***)fd);
   close(p[0][0]);
   close(p[1][1]);
-  while(read(p[1][0]), buffer, sizeof(buffer)){
+  char instr[4];
+  while(read(p[1][0]), instr, 4){
     // new process fork and exec to send message
   }
 }
@@ -147,17 +148,17 @@ static int password_exec(void *fd){
       char password[100];
       read(p[1][0], password, 100);
       int status;
-      pid_t p = fork();
-      if(p < 0){
+      pid_t pi = fork();
+      if(pi < 0){
         perror("fork failed");
       }
-      else if(p == 0){
+      else if(pi == 0){
         dup2(p[0][1], STDOUT_FILENO);
         close(p[0][1]);
         execl("/bin/verify-pw", "verify-pw", user, password, (char*)0);
       }
       else {
-        waitpid(p, &status, 0);
+        waitpid(pi, &status, 0);
         if(status){
           perror("failed to verify password");
         }
@@ -170,17 +171,17 @@ static int password_exec(void *fd){
       char curr[100];
       read(p[1][0], curr, 100);
       int status;
-      pid_t p = fork();
-      if(p < 0){
+      pid_t pi = fork();
+      if(pi < 0){
         perror("fork failed");
       }
-      else if(p == 0){
-        dup2(p[0][1], STOUD_FILENO);
+      else if(pi == 0){
+        dup2(p[0][1], STDOUT_FILENO);
         close(p[0][1]);
         execl("/bin/change-pw", "change-pw", user, prev, curr, (char*)0);
       }
       else{
-        waitpid(p, &status, 0);
+        waitpid(pi, &status, 0);
         if(status){
           perror("failed to change password");
         }
@@ -202,22 +203,22 @@ static int ca_exec(void *fd){
   close(p[1][1]);
   char instr[4];
   while(true){
-    read((p[1][0]), instr, 4);
+    read((p[1][0], instr, 4);
     if(strncmp(instr, "getc", 4)){
       char user[50];
       read(p[1][0], user, 50);
       int status;
-      pid_t p = fork();
-      if(p < 0){
+      pid_t pi = fork();
+      if(pi < 0){
         perror("fork failed");
       }
-      else if(p == 0){
+      else if(pi == 0){
         dup2(p[0][1], STDOUT_FILENO);
         close(p[0][1]);
         execl("/bin/get-cert", "get-cert", user, (char*)0);
       }
       else{
-        waitpid(p, &status, 0);
+        waitpid(pi, &status, 0);
         if(status){
           perror("failed to retrieve certificate");
         }
@@ -226,11 +227,11 @@ static int ca_exec(void *fd){
     else if(strncmp(instr, "make", 4)){
       char user[50];
       read(p[1][0], user, 50);
-      pid_t p = fork();
-      if(p < 0){
+      pid_t pi = fork();
+      if(pi < 0){
         perror("fork failed");
       }
-      else if(p == 0){
+      else if(pi == 0){
         int length;
         read(p[1][0], length, sizeof(int));
         char *req = malloc(length);
@@ -240,7 +241,7 @@ static int ca_exec(void *fd){
         execl("/scripts/signcsr.sh", "signcsr.sh", user, (char*)0);
       }
       else{
-        waitpid(p, &status, 0);
+        waitpid(pi, &status, 0);
         if(status){
           perror("failed to make certificate");
         }
