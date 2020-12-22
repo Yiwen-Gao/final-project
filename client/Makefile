@@ -11,9 +11,15 @@ LDLIBS = -lssl -lcrypto
 .PHONY: default
 default: getcert
 
-getcert: getcert.o
+clienttools: StringBIO.o clienttools.o
 
-getcert.o: getcert.cpp
+StringBIO.o: StringBIO.cpp StringBIO.h
+
+clienttools.o: clienttools.cpp StringBIO.h clienttools.h
+
+getcert: getcert.o clienttools.o
+
+getcert.o: getcert.cpp clienttools.h
 
 client: client.o
 

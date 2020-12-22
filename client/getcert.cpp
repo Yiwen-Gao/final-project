@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 #include <unistd.h>
-
+#include "clienttools.h"
 /* 
  * Gets a certificate from the server
  * 1. csr should already be generated
@@ -25,8 +25,7 @@ int main(int argc, char **argv)
 
 	string password = getpass("Enter password");
 
-	
 
-
+	//assuming csr already generated, if not, might be a doozy.
 
 }
