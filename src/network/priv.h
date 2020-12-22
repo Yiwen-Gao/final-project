@@ -9,6 +9,11 @@
 #include <sys/prctl.h>
 #include <wait.h>
 #include <memory.h>
+#include <sys/mount.h>
+#include <sys/prctl.h>
+#include <sys/stat.h>
+#include <syscall.h>
+#include <errno.h>
 
 #define STACK (1024*1024)
 
