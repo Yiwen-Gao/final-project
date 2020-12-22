@@ -8,6 +8,7 @@
 #include <string>
 #include <iostream>
 #include <unistd.h>
+#include <sys/stat.h>
 
 #include <openssl/ssl.h>
 #include <openssl/bio.h>
@@ -42,9 +43,43 @@ int main(int argc, char **argv) {
 
 	int ilen;
 	char ibuf[512];
-	
+
+	//generate the CSR:
+	FILE *tempfp = fopen("./temp", "wb");
+	if (tempfp == NULL)
+	{
+		cerr << "unable to open temp file" << endl;
+	}
+
+	//create a temp file for input to the csr
+	string newline = "\n";
+	for (int i = 0; i < 5; i++)
+	{
+		fwrite(newline.c_str(), sizeof(char), 1, tempfp);
+	}
+	fwrite(username.c_str(), sizeof(char), username.length(), tempfp);
+
+	fwrite(newline.c_str(), sizeof(char), 1, tempfp);
+	fwrite(newline.c_str(), sizeof(char), 1, tempfp);
+	fwrite(newline.c_str(), sizeof(char), 1, tempfp);
+
+	fclose(tempfp);
+
+	FILE *inputfp = fopen("./input", "wb");
+	if (inputfp == NULL)
+	{
+		cerr << "unable to open temp file" << endl;
+	}
+
+	char *bash = "!#/bin/bash\n";
+	fwrite(bash, sizeof(char), strlen(bash), inputfp);
+
+	chmod("input", S_IXGRP | S_IXUSR | S_IXOTH); 
+
+	//need to delete the temp files when we're done
+
 	//Added to send the CSR to the server
-	string CSRFILE = "../../../client/certificates/csr/" + username + ".pem";
+	string CSRFILE = "./csr/" + username + ".pem";
 
 	string toSend = "POST getcert HTTP/1.0\n"; 
 	FILE *fp = fopen(CSRFILE.c_str(), "rb");

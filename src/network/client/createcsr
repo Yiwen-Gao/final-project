@@ -1,0 +1,33 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+		echo "Must supply username as command line argument"
+		exit 0
+fi
+
+if [ -z "$2" ]; then
+		echo "Must supply a password"
+		exit 0
+fi
+
+#remove previous csr structure
+rm -rf csr
+
+mkdir csr
+cp intermediateopenssl.cnf csr/openssl.cnf
+
+cd csr
+
+mkdir private
+chmod 700 private
+
+#create the private key for the csr
+openssl genrsa -aes256 -passout pass:$2 -out private/$1.key.pem 2048
+
+chmod 400 private/$1.key.pem
+
+openssl req -config openssl.cnf \
+		-key private/$1.key.pem \
+		-passout pass:$2 \
+		-passin pass:$2 \
+		-new -sha256 -out ./$1.pem
