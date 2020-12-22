@@ -20,6 +20,7 @@
  */
 
 const int DEFAULT_PORT = 443;
+const std::string TRUSTED = "./trusted-certs/";
 
 using namespace std;
 
@@ -122,9 +123,13 @@ int main(int argc, char **argv) {
 	meth = TLS_client_method();
 	ctx = SSL_CTX_new(meth);
 
+	if (!SSL_CTX_load_verify_locations(ctx, NULL, TRUSTED.c_str())) {
+		exit(1);
+	}
+
 	SSL_CTX_set_default_verify_dir(ctx);
-	//SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, NULL);
-	SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, NULL);
+	SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, NULL);
+	//SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, NULL);
 
 	ssl = SSL_new(ctx);
 
