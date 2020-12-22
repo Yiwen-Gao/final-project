@@ -46,31 +46,53 @@ void setup_spaces(){
 
 
 
-// void getcert(string username, string password, string csr_path) {
-    // verify username and password
-    // int status;
-    // pid_t pid = fork();
+void getcert(string username, string password, vector<string> csr) {
+  char user[50];
+  char pass[100];
+  strncpy(user, username.c_str(), 50);
+  strncpy(pass, password.c_str(), 100);
+  write(ppipe[1][1], "verp", 4);
+  write(ppipe[1][1], user, 50);
+  write(ppipe[1][1], pass, 100);
+  char *result;
+  read(ppipe[0][0], result, 1);
+  if(result){
+    write(cpipe[1][1], "make", 4);
+    write(cpipe[1][1], user, 50);
+    for(string line : csr){
+      write(cpipe[1][1], line.c_str(), line.size());
+    }
+    write(cpipe[1][1], "getc", 4);
+    write(cpipe[1][1], user, 50);
+    char cert[8192];
+    read(cpipe[0][0], cert, 8192);
+  }
+}
 
-    // if (pid < 0) {
-    //     perror("failed to fork child process");
-    // } else if (pid > 0) {
-    //     waitpid(pid, &status, 0);
-    //     if (status != 0) {
-    //         perror("failed to verify username and/or password");
-    //     }
-    // } else {
-    //     string path = "./passwords/verify-pw";
-    //     if (execl(path.c_str(), path.c_str(), username.c_str(), password.c_str(), (char *) NULL) < 0) {
-    //         perror("failed to exec verification process");
-    //     }
-    // }
-
-    // generate cert from csr
-    // send and store cert 
-// }
-
-void changepw() {
-
+void changepw(string username, string old_password, string new_password, vector<string> csr) {
+  char user[50];
+  char old_pass[100];
+  strncpy(user, username.c_str(), 50);
+  strncpy(old_pass, old_password.c_str(), 100);
+  char new_pass[100];
+  strncpy(new_pass, new_password.c_str(), 100);
+  write(ppipe[1][1], "setp", 4);
+  write(ppipe[1][1], user, 50);
+  write(ppipe[1][1], old_pass, 100);
+  char *result;
+  read(ppipe[0][0], result, 1);
+  if(!result){
+    return;
+  }
+ write(cpipe[1][1], "make", 4);
+ write(cpipe[1][1], user, 50);
+ for(string line : csr){
+   write(cpipe[1][1], line.c_str(), line.size());
+ }
+ write(cpipe[1][1], "getc", 4);
+ write(cpipe[1][1], user, 50);
+ char cert[8192];
+ read(cpipe[0][0], cert, 8192);
 }
 
 void sendmsg() {
