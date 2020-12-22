@@ -1,2 +1,2 @@
 dbmanager: dbmanager.cpp
-	g++ -std=c++17 -lcrypt dbmanager.cpp -o dbmanager
+	g++ -std=c++17 dbmanager.cpp -lcrypt -o dbmanager

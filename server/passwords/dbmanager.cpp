@@ -2,17 +2,22 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <crypt.h>
+
+
+char * crypt_gensalt(char const *prefix, unsigned long count, char const *rbytes, int nrbytes);
 
 const std::string DB_NAME = "db.csv";
 
 std::string hash_with_salt(const std::string &pw, const std::string &salt)
 {
-	return "test";
+	return crypt(pw.c_str(), salt.c_str());
 }
 
 std::string salt_and_hash(const std::string &pw, std::string &salt)
 {
-	salt = " ";
+	char *tmp = crypt_gensalt(NULL, 0, NULL, 0);
+	salt = tmp;
 	return hash_with_salt(pw, salt);
 }
 
