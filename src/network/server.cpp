@@ -128,7 +128,7 @@ static int mail_exec(void *fd){
   close(p[0][0]);
   close(p[1][1]);
   char instr[4];
-  while(read(p[1][0], instr, 4){
+  while(read(p[1][0], instr, 4)){
     // new process fork and exec to send message
   }
 }
