@@ -55,6 +55,7 @@ void getcert(string username, string password, string csr) {
   write(ppipe[1][1], "verp", 4);
   write(ppipe[1][1], user, 50);
   write(ppipe[1][1], pass, 100);
+  cout << "sent credentials" << endl;
   char *result;
   read(ppipe[0][0], result, 1);
   if(result){
@@ -63,9 +64,11 @@ void getcert(string username, string password, string csr) {
     int l = csr.size();
     write(cpipe[1][1], &l, csizeof(int));
     write(cpipe[1][1], csr.c_str(), csr.size());
+    cout << "wrote to clone" << endl;
     
     write(cpipe[1][1], "getc", 4);
     write(cpipe[1][1], user, 50);
+    cout << "getting cert" << endl;
     char cert[8192];
     read(cpipe[0][0], cert, 8192);
   }
@@ -152,7 +155,7 @@ static void prepare_mntns(char *rootfs)
 }
 
 static int mail_exec(void *fd){
-  prepare_mntns("/mail/");
+  //prepare_mntns("/mail/");
   int **p = *((int ***)fd);
   close(p[0][0]);
   close(p[1][1]);
@@ -163,12 +166,13 @@ static int mail_exec(void *fd){
 }
 
 static int password_exec(void *fd){
-  prepare_mntns("../../server/passwords/");
+  //prepare_mntns("../../server/passwords/");
   int **p = *((int ***)fd);
   close(p[0][0]);
   close(p[1][1]);
   char instr[4];
   while(true){
+    perror("starting loop");
     read(p[1][0], instr, 4);
     if(strncmp(instr, "verp", 4)){
       char user[50];
@@ -184,6 +188,7 @@ static int password_exec(void *fd){
         dup2(p[0][1], STDOUT_FILENO);
         close(p[0][1]);
         execl("/bin/verify-pw", "verify-pw", user, password, (char*)0);
+        perror("execl error");
       }
       else {
         waitpid(pi, &status, 0);
@@ -225,7 +230,7 @@ static int password_exec(void *fd){
 }
 
 static int ca_exec(void *fd){
-  prepare_mntns("../../server/certificates/");
+  //prepare_mntns("../../server/certificates/");
   int **p = *((int ***)fd);
   close(p[0][0]);
   close(p[1][1]);
