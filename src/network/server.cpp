@@ -1,4 +1,5 @@
 #include "conn.h"
+#include "priv.h"
 // #include <string>
 // extern "C" {
 //     #include <sys/wait.h>
@@ -7,7 +8,6 @@
 
 using namespace std;
 
-#define STACK (1024*1024)
 static char mstack[STACK];
 static char pstack[STACK];
 static char cstack[STACK];
