@@ -24,10 +24,10 @@ static void prepare_mntns(char *rootfs)
         exit(-1);
 }
 
-static void mail_exec(int *fd[2][2]){
+static int mail_exec(void *fd){
   unshare(CLONE_NEWNS);
   prepare_mntns("/mail/");
-  int p[2][2] = *fd;
+  int p[2][2] = *((int ***)fd);
   close(p[0][0]);
   close(p[1][1]);
   while(read(p[1][0]), buffer, sizeof(buffer)){
@@ -35,10 +35,10 @@ static void mail_exec(int *fd[2][2]){
   }
 }
 
-static void password_exec(int *fd[2][2]){
+static int password_exec(void *fd){
   unshare(CLONE_NEWNS);
   prepare_mntns("/passwords/");
-  int p[2][2] = *fd;
+  int p[2][2] = *((int ***)fd);
   close(p[0][0]);
   close(p[1][1]);
   char instr[4];
@@ -97,10 +97,10 @@ static void password_exec(int *fd[2][2]){
   }
 }
 
-static void ca_exec(int *fd[2][2]){
+static int ca_exec(void *fd){
   unshare(CLONE_NEWNS);
   prepare_mntns("/certificates/");
-  int p[2][2] = *fd;
+  int p[2][2] = *((int ***)fd);
   close(p[0][0]);
   close(p[1][1]);
   char instr[4];
