@@ -116,6 +116,11 @@ int main(int argc, char **argv) {
     const char *SERVER_KEY = "../../server/certificates/ca/intermediate/private/localhost.key.pem"; // *(++argv);
     
     ServerConnection conn = ServerConnection(CA_CERT, SERVER_CERT, SERVER_KEY);
+    REQ req = conn.parse_req();
+    cout << "printing details" << endl;
+    cout << "user: " << req.user << endl;
+    cout << "pass: " << req.password << endl;
+    cout << "csr: " << endl << req.csr << endl;
     cout << "au revoir" << endl;
 }
 

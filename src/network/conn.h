@@ -67,11 +67,20 @@ class ClientConnection : public Connection {
         void connect_server();
 };
 
+struct REQ {
+    std::string user;
+    std::string password;
+    std::string csr;
+};
+
 class ServerConnection : public Connection {
     public:
         ServerConnection(const char *ca_cert, const char *my_cert, const char *my_key);
         void set_sock();
-        void accept_client();
+        int accept_client();
+        REQ parse_req();
+    private:
+        std::string req;
 };
 
 #endif
