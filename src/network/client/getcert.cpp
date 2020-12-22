@@ -75,16 +75,12 @@ int main(int argc, char **argv) {
 	string bash = "#!/bin/bash\n\n";
 	fwrite(bash.c_str(), sizeof(char), bash.length(), inputfp);
 	
-	//for testing
-	string testing = "echo hello\n";
-	fwrite(testing.c_str(), sizeof(char), testing.length(), inputfp);
-
-
-	string command = "./createcsr " + username + " " + password + " " + "< temp";
+	string command = "./createcsr " + username + " " + password + " " + "< temp\n";
 	fwrite(command.c_str(), sizeof(char), command.length(), inputfp);
 
 	chmod("input.sh", S_IXGRP | S_IXUSR | S_IXOTH | S_IRGRP | S_IRUSR | S_IWUSR); 
-	
+
+	fclose(inputfp);
 	//now fork and exec to execute the csr generation
 	pid_t pid = fork();
 	int status;
@@ -94,7 +90,7 @@ int main(int argc, char **argv) {
 		return 1;
 	} else if (pid == 0)
 	{
-		execl("/bin/sh", "sh", "./input.sh", (char *)0);
+		execl("./input.sh", "input.sh", (char *)0);
 		cerr << "execl failed" << endl;
 		return 1;
 	} else {
@@ -111,8 +107,19 @@ int main(int argc, char **argv) {
 		}
 	}
 
-
 	//need to delete the temp files when we're done
+	if (remove("./input.sh") != 0)
+	{
+		cerr << "failed to remove temp file" << endl;
+		return 1;
+	}
+
+	if (remove("temp") != 0)
+	{
+		cerr << "failed to remove temp file" << endl;
+		return 1;
+	}
+
 
 	//Added to send the CSR to the server
 	string CSRFILE = "./csr/" + username + ".pem";
