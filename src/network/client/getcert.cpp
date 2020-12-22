@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
 		return 0;
 	}
 	
-	int contentlength = 0;
+	int contentlength = username.length() + password.length() + 2;
 	int n = 0;
 	string csrContents = "";
 	char buffer[40];
@@ -70,6 +70,8 @@ int main(int argc, char **argv) {
 	toSend += "Content-Length: ";
 	toSend += to_string(contentlength);
 	toSend += "\n";
+	toSend += username + "\n";
+	toSend += password + "\n";
 	toSend += csrContents + "\n\n";
 
 	//source code:
