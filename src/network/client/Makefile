@@ -21,4 +21,4 @@ changepw.o: changepw.cpp
 
 .PHONY: clean
 clean:
-	rm -f *.o a.out core client getcert
+	rm -f *.o a.out core client getcert changepw
