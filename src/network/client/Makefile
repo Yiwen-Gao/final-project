@@ -8,9 +8,16 @@ CXXFLAGS = -g -Wall $(INCLUDES)
 LDFLAGS = -g
 LDLIBS = -lssl -lcrypto
 
+.PHONY: default
+default: getcert changepw
+
 getcert: getcert.o
 
 getcert.o: getcert.cpp
+
+changepw: changepw.o
+
+changepw.o: changepw.cpp
 
 .PHONY: clean
 clean:
