@@ -44,7 +44,7 @@ static void password_exec(int **fd){
   char instr[4];
   while(true){
     read(p[1][0], instr, 4);
-    if(strncmp(instr, "verp", 4){
+    if(strncmp(instr, "verp", 4)){
       char user[50];
       read(p[1][0], user, 50);
       char password[100];
@@ -62,10 +62,10 @@ static void password_exec(int **fd){
       else {
         waitpid(p, &status, 0);
         if(status){
-          perror("failed to verify password);
+          perror("failed to verify password");
         }
     }
-    else if(strncmp(instr, "setp", 4){
+    else if(strncmp(instr, "setp", 4)){
       char user[50];
       read(p[1][0], user, 50);
       char prev[100];
@@ -85,7 +85,7 @@ static void password_exec(int **fd){
       else{
         waitpid(p, &status, 0);
         if(status){
-          perror("failed to change password);
+          perror("failed to change password");
         }
       }
     }
@@ -105,8 +105,8 @@ static void ca_exec(int **fd){
   close(p[1][1]);
   char instr[4];
   while(true){
-    read(p[1][0]), instr, 4);
-    if(strncmp(instr, "getc", 4){
+    read((p[1][0]), instr, 4);
+    if(strncmp(instr, "getc", 4)){
       char user[50];
       read(p[1][0], user, 50);
       int status;
@@ -126,7 +126,7 @@ static void ca_exec(int **fd){
         }
       }
     }
-    else if(strncmp(instr, "make", 4){
+    else if(strncmp(instr, "make", 4)){
       char user[50];
       read(p[1][0], user, 50);
       pid_t p = fork();
