@@ -18,7 +18,7 @@ int ppipe[2][2];
 int cpipe[2][2];
 
 void setup_spaces(){
-  int flags = CLONE_NEWPID | CLONE_NEWNET | CLONE_NEWUTS | CLONE_NEWUSER | SIGCHLD;
+  int flags = CLONE_NEWPID | CLONE_NEWNET | CLONE_NEWUTS | CLONE_NEWUSER | CLONE_NEWNS |SIGCHLD;
 
   pipe(mpipe[0]);
   pipe(mpipe[1]);
@@ -145,7 +145,6 @@ static void prepare_mntns(char *rootfs)
 }
 
 static int mail_exec(void *fd){
-  unshare(CLONE_NEWNS);
   prepare_mntns("/mail/");
   int **p = *((int ***)fd);
   close(p[0][0]);
@@ -157,7 +156,6 @@ static int mail_exec(void *fd){
 }
 
 static int password_exec(void *fd){
-  unshare(CLONE_NEWNS);
   prepare_mntns("../../server/passwords/");
   int **p = *((int ***)fd);
   close(p[0][0]);
@@ -220,7 +218,6 @@ static int password_exec(void *fd){
 }
 
 static int ca_exec(void *fd){
-  unshare(CLONE_NEWNS);
   prepare_mntns("../../server/certificates/");
   int **p = *((int ***)fd);
   close(p[0][0]);
