@@ -136,7 +136,7 @@ static int mail_exec(void *fd){
 static int password_exec(void *fd){
   unshare(CLONE_NEWNS);
   prepare_mntns("/passwords/");
-  int p[2][2] = *((int ***)fd);
+  int **p = *((int ***)fd);
   close(p[0][0]);
   close(p[1][1]);
   char instr[4];
