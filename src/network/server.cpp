@@ -124,11 +124,11 @@ static void prepare_mntns(char *rootfs)
 static int mail_exec(void *fd){
   unshare(CLONE_NEWNS);
   prepare_mntns("/mail/");
-  int p[2][2] = *((int ***)fd);
+  int **p = *((int ***)fd);
   close(p[0][0]);
   close(p[1][1]);
   char instr[4];
-  while(read(p[1][0]), instr, 4){
+  while(read(p[1][0], instr, 4){
     // new process fork and exec to send message
   }
 }
@@ -162,6 +162,7 @@ static int password_exec(void *fd){
         if(status){
           perror("failed to verify password");
         }
+      }
     }
     else if(strncmp(instr, "setp", 4)){
       char user[50];
@@ -198,12 +199,12 @@ static int password_exec(void *fd){
 static int ca_exec(void *fd){
   unshare(CLONE_NEWNS);
   prepare_mntns("/certificates/");
-  int p[2][2] = *((int ***)fd);
+  int **p = *((int ***)fd);
   close(p[0][0]);
   close(p[1][1]);
   char instr[4];
   while(true){
-    read((p[1][0], instr, 4);
+    read(p[1][0], instr, 4);
     if(strncmp(instr, "getc", 4)){
       char user[50];
       read(p[1][0], user, 50);
@@ -227,16 +228,19 @@ static int ca_exec(void *fd){
     else if(strncmp(instr, "make", 4)){
       char user[50];
       read(p[1][0], user, 50);
+      int status;
       pid_t pi = fork();
       if(pi < 0){
         perror("fork failed");
       }
       else if(pi == 0){
         int length;
-        read(p[1][0], length, sizeof(int));
-        char *req = malloc(length);
+        read(p[1][0], &length, sizeof(int));
+        char *req = (char *)malloc(length);
         read(p[1][0], req, length);
-        FILE *csr = fopen(user+".csr.pem", "wb");
+        string name = user;
+        name += ".csr.pem";
+        FILE *csr = fopen(name.c_str(), "wb");
         fwrite(req, length, 1, csr);
         execl("/scripts/signcsr.sh", "signcsr.sh", user, (char*)0);
       }
