@@ -158,7 +158,7 @@ static int mail_exec(void *fd){
 
 static int password_exec(void *fd){
   unshare(CLONE_NEWNS);
-  prepare_mntns("/passwords/");
+  prepare_mntns("../../server/passwords/");
   int **p = *((int ***)fd);
   close(p[0][0]);
   close(p[1][1]);
@@ -221,7 +221,7 @@ static int password_exec(void *fd){
 
 static int ca_exec(void *fd){
   unshare(CLONE_NEWNS);
-  prepare_mntns("/certificates/");
+  prepare_mntns("../../server/certificates/");
   int **p = *((int ***)fd);
   close(p[0][0]);
   close(p[1][1]);
