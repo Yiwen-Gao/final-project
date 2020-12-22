@@ -14,8 +14,8 @@
 
 
 static void prepare_mntns(char *rootfs);
-static void mail_exec(int *fd[2][2]);
-static void password_exec(int *fd[2][2]);
-static void ca_exec(int *fd[2][2]);
+static int mail_exec(void *fd);
+static int password_exec(void *fd);
+static int ca_exec(void *fd);
 
 #endif /* PRIV_H */
