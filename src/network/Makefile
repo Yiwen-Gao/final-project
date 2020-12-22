@@ -9,8 +9,8 @@ DEPS = conn.h priv.h
 LDFLAGS = -g
 LDLIBS = -lssl -lcrypto
 
-server: clean conn.o server-conn.o server.o priv.o
-	$(CC) $(LDFLAGS) conn.o priv.o server-conn.o server.o $(LDLIBS) -o server 
+server: clean conn.o server-conn.o server.o
+	$(CC) $(LDFLAGS) conn.o server-conn.o server.o $(LDLIBS) -o server 
 
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
