@@ -62,7 +62,7 @@ void getcert(string username, string password, string csr) {
     write(cpipe[1][1], "make", 4);
     write(cpipe[1][1], user, 50);
     int l = csr.size();
-    write(cpipe[1][1], &l, csizeof(int));
+    write(cpipe[1][1], &l, sizeof(int));
     write(cpipe[1][1], csr.c_str(), csr.size());
     cout << "wrote to clone" << endl;
     
