@@ -25,24 +25,24 @@ void setup_spaces(){
   if(clone(mail_exec, mstack+STACK, flags, &mpipe)<0){
       perror("failed to clone");
   }
-  close(mpipe[0][1]);
-  close(mpipe[1][0]);
+//  close(mpipe[0][1]);
+//  close(mpipe[1][0]);
 
   pipe(ppipe[0]);
   pipe(ppipe[1]);
   if(clone(password_exec, pstack+STACK, flags, &ppipe)<0){
       perror("failed to clone");
   }
-  close(ppipe[0][1]);
-  close(ppipe[1][0]);
+//  close(ppipe[0][1]);
+//  close(ppipe[1][0]);
 
   pipe(cpipe[0]);
   pipe(cpipe[1]);
   if(clone(ca_exec, cstack+STACK, flags, &cpipe)<0){
       perror("failed to clone");
   }
-  close(cpipe[0][1]);
-  close(cpipe[1][0]);
+//  close(cpipe[0][1]);
+//  close(cpipe[1][0]);
 }
 
 
@@ -52,12 +52,13 @@ void getcert(string username, string password, string csr) {
   char pass[100];
   strncpy(user, username.c_str(), 50);
   strncpy(pass, password.c_str(), 100);
+  cout << "about to write" << endl;
   write(ppipe[1][1], "verp", 4);
   write(ppipe[1][1], user, 50);
   write(ppipe[1][1], pass, 100);
   cout << "sent credentials" << endl;
-  char *result;
-  read(ppipe[0][0], result, 1);
+  int result;
+  read(ppipe[0][0], &result, sizeof(int));
   if(result){
     write(cpipe[1][1], "make", 4);
     write(cpipe[1][1], user, 50);
@@ -167,26 +168,27 @@ static int mail_exec(void *fd){
 
 static int password_exec(void *fd){
   //prepare_mntns("../../server/passwords/");
-  int **p = *((int ***)fd);
-  close(p[0][0]);
-  close(p[1][1]);
+  //int **p = *((int ***)fd);
+  close(ppipe[0][0]);
+  close(ppipe[1][1]);
   char instr[4];
   while(true){
-    perror("starting loop");
-    read(p[1][0], instr, 4);
+    cout << "starting loop" << endl;
+    read(ppipe[1][0], instr, 4);
+    cout << "read" << endl;
     if(strncmp(instr, "verp", 4)){
       char user[50];
-      read(p[1][0], user, 50);
+      read(ppipe[1][0], user, 50);
       char password[100];
-      read(p[1][0], password, 100);
+      read(ppipe[1][0], password, 100);
       int status;
       pid_t pi = fork();
       if(pi < 0){
         perror("fork failed");
       }
       else if(pi == 0){
-        dup2(p[0][1], STDOUT_FILENO);
-        close(p[0][1]);
+        dup2(ppipe[0][1], STDOUT_FILENO);
+        close(ppipe[0][1]);
         execl("/bin/verify-pw", "verify-pw", user, password, (char*)0);
         perror("execl error");
       }
@@ -199,19 +201,19 @@ static int password_exec(void *fd){
     }
     else if(strncmp(instr, "setp", 4)){
       char user[50];
-      read(p[1][0], user, 50);
+      read(ppipe[1][0], user, 50);
       char prev[100];
-      read(p[1][0], prev, 100);
+      read(ppipe[1][0], prev, 100);
       char curr[100];
-      read(p[1][0], curr, 100);
+      read(ppipe[1][0], curr, 100);
       int status;
       pid_t pi = fork();
       if(pi < 0){
         perror("fork failed");
       }
       else if(pi == 0){
-        dup2(p[0][1], STDOUT_FILENO);
-        close(p[0][1]);
+        dup2(ppipe[0][1], STDOUT_FILENO);
+        close(ppipe[0][1]);
         execl("/bin/change-pw", "change-pw", user, prev, curr, (char*)0);
       }
       else{
@@ -222,10 +224,11 @@ static int password_exec(void *fd){
       }
     }
     else {
+      cout << "breaking" << endl;
       break;
     }
-    close(p[1][0]);
-    close(p[0][1]);
+    close(ppipe[1][0]);
+    close(ppipe[0][1]);
   }
 }
 
