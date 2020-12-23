@@ -1,5 +1,11 @@
 #include "conn.h"
 #include "priv.h"
+#include <vector>
+// #include <string>
+// extern "C" {
+//     #include <sys/wait.h>
+//     #include <unistd.h>
+// }
 
 using namespace std;
 
@@ -25,28 +31,55 @@ void setup_spaces(){
 
   pipe(mpipe[0]);
   pipe(mpipe[1]);
-  if(clone(mail_exec, mstack+STACK, flags, &mpipe)<0){
+  int mp = clone(mail_exec, mstack+STACK, flags, &mpipe);
+  if(mp < 0){
       perror("failed to clone");
   }
   close(mpipe[0][1]);
   close(mpipe[1][0]);
+  string proc = "/proc/";
+  proc += to_string(mp);
+  proc += "/uid_map";
+  FILE* uid = fopen(proc.c_str(), "w");
+  char *line = "0 1042 1\n";
+  fwrite(line, 1, strlen(line), uid);
+  fclose(uid);
 
   pipe(ppipe[0]);
   pipe(ppipe[1]);
-  if(clone(password_exec, pstack+STACK, flags, &ppipe)<0){
+  pid_t pp = clone(password_exec, pstack+STACK, flags, &ppipe);
+  if(pp<0){
       perror("failed to clone");
   }
   close(ppipe[0][1]);
   close(ppipe[1][0]);
+ /* proc = "/proc/";
+  proc += pp;
+  proc += "/uid_map";
+  uid = fopen(proc.c_str(), "w");
+  line = "0 1042 1\n";
+  fwrite(line, 1, strlen(line), uid);
+  fclose(uid);*/
 
   pipe(cpipe[0]);
   pipe(cpipe[1]);
-  if(clone(ca_exec, cstack+STACK, flags, &cpipe)<0){
+  pid_t cp = clone(ca_exec, cstack+STACK, flags, &cpipe);
+  if(cp<0){
       perror("failed to clone");
   }
   close(cpipe[0][1]);
   close(cpipe[1][0]);
+  proc = "/proc/";
+  proc += to_string(cp);
+  proc += "/uid_map";
+  cout << proc << endl;
+  uid = fopen(proc.c_str(), "w");
+  line = "0 1042 1\n";
+  fwrite(line, 1, strlen(line), uid);
+  fclose(uid);
 }
+
+
 
 void getcert(string username, string password, string csr) {
   char user[50];
@@ -110,19 +143,23 @@ void changepw(string username, string old_password, string new_password, vector<
 }
 
 void sendmsg() {
-    // return certificates
+
 }
 
 void recvmsg() {
-    // return msgs
+
 }
 
 int main(int argc, char **argv) {
+    // if (argc < 4) {
+    //     perror("usage: ./server <ca_cert> <server_cert> <server_key>");
+    //     exit(1);
+    // }
     setup_spaces();
 
-    const char *CA_CERT = "./certificates/ca/certs/ca.cert.pem"; 
-    const char *SERVER_CERT = "./certificates/ca/intermediate/certs/localhost.cert.pem"; 
-    const char *SERVER_KEY = "./certificates/ca/intermediate/private/localhost.key.pem"; 
+    const char *CA_CERT = "../../server/certificates/ca/certs/ca.cert.pem"; // *(++argv);
+    const char *SERVER_CERT = "../../server/certificates/ca/intermediate/certs/localhost.cert.pem"; // *(++argv);
+    const char *SERVER_KEY = "../../server/certificates/ca/intermediate/private/localhost.key.pem"; // *(++argv);
     
     ServerConnection conn = ServerConnection(CA_CERT, SERVER_CERT, SERVER_KEY);
     string temp = conn.recv();
@@ -134,6 +171,7 @@ int main(int argc, char **argv) {
     getcert(req.user, req.password, req.csr);
     cout << "au revoir" << endl;
 }
+
 
 static void prepare_mntns(char *rootfs)
 {
@@ -179,7 +217,8 @@ static int password_exec(void *fd){
   while(true){
     cout << "starting loop" << endl;
     if(read(ppipe[1][0], instr, 4)<= 0){
-      perror("pipe closed");
+      cout << ppipe[1][0] << endl;
+      perror("ppipe closed");
       break;
     }
     cout << "read" << endl;
@@ -237,20 +276,22 @@ static int password_exec(void *fd){
       cout << "breaking" << endl;
       break;
     }
-    close(ppipe[1][0]);
-    close(ppipe[0][1]);
   }
+  close(ppipe[1][0]);
+  close(ppipe[0][1]);
 }
 
 static int ca_exec(void *fd){
   //prepare_mntns("../../server/certificates/");
   //int **p = *((int ***)fd);
+  cout << "now in ca_exec" << endl;
   close(cpipe[0][0]);
   close(cpipe[1][1]);
+  setuid(0);
   char instr[4];
   while(true){
     if(read(cpipe[1][0], instr, 4) <= 0){
-      perror("pipe closed");
+      perror("cpipe closed");
       break;
     }
     if(!strncmp(instr, "getc", 4)){
@@ -264,7 +305,9 @@ static int ca_exec(void *fd){
       else if(pi == 0){
         dup2(cpipe[0][1], STDOUT_FILENO);
         close(cpipe[0][1]);
-        execl("../certificates/get-cert", "get-cert", user, (char*)0);
+        string location = "../../server/certificates/ca/intermediate/certs/";
+        location += user;
+        execl("../certificates/get-cert", "get-cert", location.c_str(), (char*)0);
       }
       else{
         waitpid(pi, &status, 0);
@@ -286,11 +329,21 @@ static int ca_exec(void *fd){
         read(cpipe[1][0], &length, sizeof(int));
         char *req = (char *)malloc(length);
         read(cpipe[1][0], req, length);
-        string name = user;
+        string location = "../../server/certificates/ca/intermediate/";
+        string name = location + "csr/" + user;
         name += ".csr.pem";
-        FILE *csr = fopen(name.c_str(), "wb");
-        fwrite(req, length, 1, csr);
-        execl("../../server/certificates/signcsr.sh", "signcsr.sh", user, (char*)0);
+        cout << name.c_str() << endl;
+        FILE *csr = fopen(name.c_str(), "w");
+        cout << fwrite(req, 1, length, csr) << endl;
+        fclose(csr);
+
+        csr = fopen(name.c_str(), "r");
+        fread(req, 1, length, csr);
+        cout << req << endl;
+        free(req);
+        fclose(csr);
+        cout << getuid() << endl;
+        execl("../../server/certificates/signcsr.sh", "signcsr.sh", location.c_str(), user, (char*)0);
       }
       else{
         waitpid(pi, &status, 0);
