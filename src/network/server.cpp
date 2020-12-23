@@ -53,7 +53,7 @@ void setup_spaces(){
   }
   close(ppipe[0][1]);
   close(ppipe[1][0]);
-  string proc = "/proc/";
+  proc = "/proc/";
   proc += pp;
   proc += "/uid_map";
   uid = fopen(proc.c_str(), "w");
