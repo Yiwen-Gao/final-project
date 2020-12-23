@@ -38,5 +38,6 @@ bool contains_user(string username);
 bool verify_user(string username, string password);
 bool update_user(string username, string prev_password, string curr_password);
 bool updated_all_users(vector<User> users);
+bool add_user(string username, string password);
 
 #endif

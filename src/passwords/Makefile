@@ -24,6 +24,10 @@ change-pw: db-manager.o change-pw.o
 	$(CC) $(LDFLAGS) db-manager.o change-pw.o $(LDLIBS) -o change-pw 
 	cp change-pw ../../server/passwords
 
+add-user: db-manager.o add-user.o
+	$(CC) $(LDFLAGS) db-manager.o add-user.o $(LDLIBS) -o add-user 
+	cp add-user ../../server/passwords
+
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
