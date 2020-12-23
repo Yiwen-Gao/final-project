@@ -241,6 +241,7 @@ int main(int argc, char **argv) {
 		}
 		printf("%s", ibuf);
 	}
+	fclose(certfp);
 
 	return 0;
 }
