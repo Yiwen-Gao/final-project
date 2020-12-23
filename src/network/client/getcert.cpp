@@ -14,6 +14,7 @@
 #include <openssl/ssl.h>
 #include <openssl/bio.h>
 #include <openssl/err.h>
+#include <openssl/x509.h>
 
 /*
  * Compile with -lssl -lcrypto
@@ -21,6 +22,7 @@
  */
 
 const int DEFAULT_PORT = 443;
+const std::string TRUSTED = "./trusted_certificates/";
 
 using namespace std;
 
@@ -165,9 +167,14 @@ int main(int argc, char **argv) {
 	meth = TLS_client_method();
 	ctx = SSL_CTX_new(meth);
 
-	SSL_CTX_set_default_verify_dir(ctx);
-	//SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, NULL);
-	SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, NULL);
+	if (!SSL_CTX_load_verify_locations(ctx, "./trusted_certs/ca-chain.cert.pem", NULL)) {
+		exit(1);
+	}
+
+	SSL_CTX_set_verify_depth(ctx, 6);
+
+	SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, NULL);
+	//SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, NULL);
 
 	ssl = SSL_new(ctx);
 
@@ -193,6 +200,12 @@ int main(int argc, char **argv) {
 	SSL_set_bio(ssl, sbio, sbio);
 
 	err = SSL_connect(ssl);
+	/*X509* server_cert = SSL_get_peer_certificate(ssl);
+	BIO * bio_out = BIO_new_file("pooppoop.pem", "w");
+	X509_print(bio_out, server_cert);
+	PEM_write_bio_X509(bio_out, server_cert);
+	BIO_free(bio_out);
+	X509_free(server_cert);*/
 	if (SSL_connect(ssl) != 1) {
 		switch (SSL_get_error(ssl, err)) {
 			case SSL_ERROR_NONE: s="SSL_ERROR_NONE"; break;

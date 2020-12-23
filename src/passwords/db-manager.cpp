@@ -79,6 +79,15 @@ bool update_user(string username, string prev_password, string curr_password) {
 	return update_all_users(users);
 }
 
+bool add_user(string username, string password)
+{
+    vector<User> users = select_all_users();
+    User user = hash_info(username, "", password);
+    users.push_back(user);
+    
+    return update_all_users(users);
+}
+
 bool update_all_users(vector<User> users) {
 	ofstream db(DB_NAME);
 	if (db.is_open()) {
