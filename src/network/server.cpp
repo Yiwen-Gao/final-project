@@ -1,11 +1,7 @@
 #include "conn.h"
 #include "priv.h"
 #include <vector>
-// #include <string>
-// extern "C" {
-//     #include <sys/wait.h>
-//     #include <unistd.h>
-// }
+#include <pwd.h>
 
 using namespace std;
 
@@ -73,9 +69,12 @@ void setup_spaces(){
   proc += to_string(cp);
   proc += "/uid_map";
   cout << proc << endl;
+  struct passwd *pw = getpwnam("cert-writer");
   uid = fopen(proc.c_str(), "w");
-  line = "0 1042 1\n";
-  fwrite(line, 1, strlen(line), uid);
+  string entry = "0 ";
+  entry += to_string((int)pw->pw_uid);
+  entry += " 1\n";
+  fwrite(entry.c_str(), 1, strlen(entry.c_str()), uid);
   fclose(uid);
 }
 
