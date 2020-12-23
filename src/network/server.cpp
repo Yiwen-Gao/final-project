@@ -69,7 +69,7 @@ void setup_spaces(){
   }
   close(cpipe[0][1]);
   close(cpipe[1][0]);
-  string proc = "/proc/";
+  proc = "/proc/";
   proc += cp;
   proc += "/uid_map";
   uid = fopen(proc.c_str(), "w");
