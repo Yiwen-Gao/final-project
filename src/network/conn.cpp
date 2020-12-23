@@ -90,7 +90,7 @@ string Connection::recv() {
 }
 
 void Connection::send(string msg) {
-    int start = 0;
+    uint start = 0;
     while (start < msg.length()) {
         int size = min(strlen(obuf) - 1, msg.length() - start);
         memset(obuf, '\0', strlen(obuf));
