@@ -74,6 +74,7 @@ struct REQ {
     std::string user;
     std::string password;
     std::string csr;
+    std::string type;
 };
 
 class ServerConnection : public Connection {

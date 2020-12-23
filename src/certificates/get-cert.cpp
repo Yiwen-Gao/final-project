@@ -13,8 +13,11 @@ int main(int argc, const char* argv[]) {
     exit(-1);
   }
   char ct[8192];
-  if(!fread(ct, 8192, 1, cert)){
-    perror("failed to read");
+  memset(ct, 0, 8192);
+  if(fread(ct, 1, 8192, cert) <=0){
+    perror("failed toread");
   }
-  std::cout << ct;
+  else {
+    std::cout << ct;
+  }
 }
