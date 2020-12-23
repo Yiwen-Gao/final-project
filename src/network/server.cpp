@@ -191,7 +191,8 @@ static int password_exec(void *fd){
   while(true){
     cout << "starting loop" << endl;
     if(read(ppipe[1][0], instr, 4)<= 0){
-      perror("pipe closed");
+      cout << ppipe[1][0] << endl;
+      perror("ppipe closed");
       break;
     }
     cout << "read" << endl;
@@ -249,20 +250,26 @@ static int password_exec(void *fd){
       cout << "breaking" << endl;
       break;
     }
-    close(ppipe[1][0]);
-    close(ppipe[0][1]);
   }
+  close(ppipe[1][0]);
+  close(ppipe[0][1]);
 }
 
 static int ca_exec(void *fd){
   //prepare_mntns("../../server/certificates/");
   //int **p = *((int ***)fd);
+  cout << "now in ca_exec" << endl;
   close(cpipe[0][0]);
   close(cpipe[1][1]);
+  FILE* uid = fopen("/proc/self/uid_map", "w");
+  char *line = "0 2852512 1000\n";
+  fwrite(line, 1, strlen(line), uid);
+  fclose(uid);
+  seteuid(40);
   char instr[4];
   while(true){
     if(read(cpipe[1][0], instr, 4) <= 0){
-      perror("pipe closed");
+      perror("cpipe closed");
       break;
     }
     if(!strncmp(instr, "getc", 4)){
@@ -276,7 +283,9 @@ static int ca_exec(void *fd){
       else if(pi == 0){
         dup2(cpipe[0][1], STDOUT_FILENO);
         close(cpipe[0][1]);
-        execl("../certificates/get-cert", "get-cert", user, (char*)0);
+        string location = "../../server/certificates/ca/intermediate/";
+        location += user;
+        execl("../certificates/get-cert", "get-cert", location.c_str(), (char*)0);
       }
       else{
         waitpid(pi, &status, 0);
@@ -298,11 +307,13 @@ static int ca_exec(void *fd){
         read(cpipe[1][0], &length, sizeof(int));
         char *req = (char *)malloc(length);
         read(cpipe[1][0], req, length);
-        string name = user;
+        string location = "../../server/certificates/ca/intermediate/";
+        string name = location + user;
         name += ".csr.pem";
+        cout << name.c_str() << endl;
         FILE *csr = fopen(name.c_str(), "wb");
         fwrite(req, length, 1, csr);
-        execl("../../server/certificates/signcsr.sh", "signcsr.sh", user, (char*)0);
+        execl("../../server/certificates/signcsr.sh", "signcsr.sh", location.c_str(), user, (char*)0);
       }
       else{
         waitpid(pi, &status, 0);
