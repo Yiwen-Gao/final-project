@@ -17,6 +17,15 @@ int mpipe[2][2];
 int ppipe[2][2];
 int cpipe[2][2];
 
+void end(){
+  close(mpipe[0][0]);
+  close(mpipe[1][1]);
+  close(ppipe[0][0]);
+  close(ppipe[1][1]);
+  close(cpipe[0][0]);
+  close(cpipe[1][1]);
+  exit(0);
+}
 void setup_spaces(){
   int flags = CLONE_NEWPID | CLONE_NEWNET | CLONE_NEWUTS | CLONE_NEWUSER | CLONE_NEWNS |SIGCHLD;
 
@@ -72,6 +81,9 @@ void getcert(string username, string password, string csr) {
     cout << "getting cert" << endl;
     char cert[8192];
     read(cpipe[0][0], cert, 8192);
+  }
+  else{
+    end();
   }
 }
 
