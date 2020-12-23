@@ -104,17 +104,17 @@ void changepw(string username, string old_password, string new_password, vector<
   if(!result){
     end();
   }
- write(cpipe[1][1], "make", 4);
- write(cpipe[1][1], user, 50);
- for(string line : csr){
-   write(cpipe[1][1], line.c_str(), line.size());
- }
- write(cpipe[1][1], "getc", 4);
- write(cpipe[1][1], user, 50);
- char cert[8192];
- read(cpipe[0][0], cert, 8192);
- string c(cert, 8192);
- cout << c << endl;
+  write(cpipe[1][1], "make", 4);
+  write(cpipe[1][1], user, 50);
+  for(string line : csr){
+    write(cpipe[1][1], line.c_str(), line.size());
+  }
+  write(cpipe[1][1], "getc", 4);
+  write(cpipe[1][1], user, 50);
+  char cert[8192];
+  read(cpipe[0][0], cert, 8192);
+  string c(cert, 8192);
+  cout << c << endl;
 }
 
 void sendmsg() {

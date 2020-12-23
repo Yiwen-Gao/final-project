@@ -26,6 +26,10 @@ void ServerConnection::set_sock() {
     }
 }
 
+int ServerConnection::send_string(string to_send) {
+    return SSL_write(ssl, to_send.c_str(), to_send.length() + 1);
+}
+
 int ServerConnection::accept_client() {
     struct sockaddr_in sa_cli;
     uint len_cli = sizeof(sa_cli);
@@ -70,11 +74,32 @@ REQ ServerConnection::parse_req()
     {
         lines.push_back(ind);
     }
-    if (lines.size() > 3)
+    std::string req_line = req.substr(0, lines[0]);
+    if (req_line == "POST getcert HTTP/1.0")
     {
-        to_ret.user = req.substr(lines[1] + 1, lines[2] - lines[1] - 1);
-        to_ret.password = req.substr(lines[2] + 1, lines[3] - lines[2] - 1);
-        to_ret.csr = req.substr(lines[3] + 1);
+        to_ret.type = "getcert";
+        if (lines.size() > 3)
+        {
+            to_ret.user = req.substr(lines[1] + 1, lines[2] - lines[1] - 1);
+            to_ret.password = req.substr(lines[2] + 1, lines[3] - lines[2] - 1);
+            to_ret.csr = req.substr(lines[3] + 1);
+        }
+    }
+    else if (req_line == "POST changepw HTTP/1.0")
+    {
+        to_ret.type = "changepw";
+    }
+    else if (req_line == "POST sendmsg HTTP/1.0")
+    {
+        to_ret.type = "sendmsg";
+    }
+    else if (req_line == "POST recvmsg HTTP/1.0")
+    {
+        to_ret.type = "recvmsg";
+    }
+    else
+    {
+        to_ret.type = "invalid";
     }
     return to_ret;
 }
