@@ -315,6 +315,6 @@ static int ca_exec(void *fd){
       break;
     }
   }
-  close(p[1][0]);
-  close(p[0][1]);
+  close(cpipe[1][0]);
+  close(cpipe[0][1]);
 }

@@ -26,6 +26,10 @@ void ServerConnection::set_sock() {
     }
 }
 
+int ServerConnection::send_string(string to_send) {
+    return SSL_write(ssl, to_send.c_str(), to_send.length() + 1);
+}
+
 int ServerConnection::accept_client() {
     struct sockaddr_in sa_cli;
     uint len_cli = sizeof(sa_cli);

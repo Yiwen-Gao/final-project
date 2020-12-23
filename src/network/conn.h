@@ -78,6 +78,7 @@ class ServerConnection : public Connection {
         ServerConnection(const char *ca_cert, const char *my_cert, const char *my_key);
         void set_sock();
         int accept_client();
+        int send_string(std::string to_send);
         REQ parse_req();
     private:
         std::string req;
