@@ -105,8 +105,9 @@ void getcert(string username, string password, string csr) {
     write(cpipe[1][1], user, 50);
     cout << "getting cert" << endl;
     char cert[8192];
-    read(cpipe[0][0], cert, 8192);
-    string c(cert, 8192);
+    read(cpipe[0][0], &l, sizeof(int));
+    read(cpipe[0][0], cert, l);
+    string c(cert, l);
     cout << c << endl;
   }
   else{
