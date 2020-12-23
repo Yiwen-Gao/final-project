@@ -31,27 +31,51 @@ void setup_spaces(){
 
   pipe(mpipe[0]);
   pipe(mpipe[1]);
-  if(clone(mail_exec, mstack+STACK, flags, &mpipe)<0){
+  pid_t mp = clone(mail_exec, mstack+STACK, flags, &mpipe);
+  if(mp < 0){
       perror("failed to clone");
   }
   close(mpipe[0][1]);
   close(mpipe[1][0]);
+  string proc = "/proc/";
+  proc += mp;
+  proc += "/uid_map";
+  FILE* uid = fopen(proc.c_str(), "w");
+  char *line = "0 1042 1\n";
+  fwrite(line, 1, strlen(line), uid);
+  fclose(uid);
 
   pipe(ppipe[0]);
   pipe(ppipe[1]);
-  if(clone(password_exec, pstack+STACK, flags, &ppipe)<0){
+  pid_t pp = clone(password_exec, pstack+STACK, flags, &ppipe);
+  if(pp<0){
       perror("failed to clone");
   }
   close(ppipe[0][1]);
   close(ppipe[1][0]);
+  string proc = "/proc/";
+  proc += pp;
+  proc += "/uid_map";
+  uid = fopen(proc.c_str(), "w");
+  line = "0 1042 1\n";
+  fwrite(line, 1, strlen(line), uid);
+  fclose(uid);
 
   pipe(cpipe[0]);
   pipe(cpipe[1]);
-  if(clone(ca_exec, cstack+STACK, flags, &cpipe)<0){
+  pid_t cp = clone(ca_exec, cstack+STACK, flags, &cpipe);
+  if(cp<0){
       perror("failed to clone");
   }
   close(cpipe[0][1]);
   close(cpipe[1][0]);
+  string proc = "/proc/";
+  proc += cp;
+  proc += "/uid_map";
+  uid = fopen(proc.c_str(), "w");
+  line = "0 1042 1\n";
+  fwrite(line, 1, strlen(line), uid);
+  fclose(uid);
 }
 
 
@@ -261,19 +285,13 @@ static int ca_exec(void *fd){
   cout << "now in ca_exec" << endl;
   close(cpipe[0][0]);
   close(cpipe[1][1]);
-  string proc = "/proc/self/uid_map";
-  FILE* uid = fopen(proc.c_str(), "w");
-  char *line = "0 1042 1\n";
-  fwrite(line, 1, strlen(line), uid);
-  fclose(uid);
-  seteuid(1042);
-  cout << geteuid() << endl;
   char instr[4];
   while(true){
     if(read(cpipe[1][0], instr, 4) <= 0){
       perror("cpipe closed");
       break;
     }
+    cout << geteuid() << endl;
     if(!strncmp(instr, "getc", 4)){
       char user[50];
       read(cpipe[1][0], user, 50);
