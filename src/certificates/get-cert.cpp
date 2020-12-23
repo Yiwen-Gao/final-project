@@ -14,12 +14,10 @@ int main(int argc, const char* argv[]) {
   }
   char ct[8192];
   memset(ct, 0, 8192);
-  int length = 0;
-  int r = 0;
-  do{
-    r = fread(ct+length, 1, 8192, cert);
-    length += r;
-  } while(r>0);
-  std::cout << length;
-  std::cout << ct;
+  if(fread(ct, 1, 8192, cert) <=0){
+    perror("failed toread");
+  }
+  else {
+    std::cout << ct;
+  }
 }
