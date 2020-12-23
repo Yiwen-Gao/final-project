@@ -9,7 +9,11 @@ LDFLAGS = -g
 LDLIBS = -lssl -lcrypto
 
 .PHONY: default
-default: getcert changepw
+default: getcert changepw sendmsg
+
+sendmsg: sendmsg.o
+
+sendmsg.o: sendmsg.cpp
 
 getcert: getcert.o
 
