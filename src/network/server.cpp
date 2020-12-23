@@ -31,14 +31,14 @@ void setup_spaces(){
 
   pipe(mpipe[0]);
   pipe(mpipe[1]);
-  pid_t mp = clone(mail_exec, mstack+STACK, flags, &mpipe);
+  int mp = clone(mail_exec, mstack+STACK, flags, &mpipe);
   if(mp < 0){
       perror("failed to clone");
   }
   close(mpipe[0][1]);
   close(mpipe[1][0]);
   string proc = "/proc/";
-  proc += mp;
+  proc += to_string(mp);
   proc += "/uid_map";
   FILE* uid = fopen(proc.c_str(), "w");
   char *line = "0 1042 1\n";
@@ -53,13 +53,13 @@ void setup_spaces(){
   }
   close(ppipe[0][1]);
   close(ppipe[1][0]);
-  string proc = "/proc/";
+ /* proc = "/proc/";
   proc += pp;
   proc += "/uid_map";
   uid = fopen(proc.c_str(), "w");
   line = "0 1042 1\n";
   fwrite(line, 1, strlen(line), uid);
-  fclose(uid);
+  fclose(uid);*/
 
   pipe(cpipe[0]);
   pipe(cpipe[1]);
@@ -69,9 +69,10 @@ void setup_spaces(){
   }
   close(cpipe[0][1]);
   close(cpipe[1][0]);
-  string proc = "/proc/";
-  proc += cp;
+  proc = "/proc/";
+  proc += to_string(cp);
   proc += "/uid_map";
+  cout << proc << endl;
   uid = fopen(proc.c_str(), "w");
   line = "0 1042 1\n";
   fwrite(line, 1, strlen(line), uid);
@@ -285,13 +286,13 @@ static int ca_exec(void *fd){
   cout << "now in ca_exec" << endl;
   close(cpipe[0][0]);
   close(cpipe[1][1]);
+  setuid(0);
   char instr[4];
   while(true){
     if(read(cpipe[1][0], instr, 4) <= 0){
       perror("cpipe closed");
       break;
     }
-    cout << geteuid() << endl;
     if(!strncmp(instr, "getc", 4)){
       char user[50];
       read(cpipe[1][0], user, 50);
@@ -303,7 +304,7 @@ static int ca_exec(void *fd){
       else if(pi == 0){
         dup2(cpipe[0][1], STDOUT_FILENO);
         close(cpipe[0][1]);
-        string location = "../../server/certificates/ca/intermediate/";
+        string location = "../../server/certificates/ca/intermediate/certs/";
         location += user;
         execl("../certificates/get-cert", "get-cert", location.c_str(), (char*)0);
       }
@@ -328,12 +329,19 @@ static int ca_exec(void *fd){
         char *req = (char *)malloc(length);
         read(cpipe[1][0], req, length);
         string location = "../../server/certificates/ca/intermediate/";
-        string name = location + user;
+        string name = location + "csr/" + user;
         name += ".csr.pem";
         cout << name.c_str() << endl;
-        FILE *csr = fopen(name.c_str(), "wb");
-        cout << errno << endl;
-        fwrite(req, length, 1, csr);
+        FILE *csr = fopen(name.c_str(), "w");
+        cout << fwrite(req, 1, length, csr) << endl;
+        fclose(csr);
+
+        csr = fopen(name.c_str(), "r");
+        fread(req, 1, length, csr);
+        cout << req << endl;
+        free(req);
+        fclose(csr);
+        cout << getuid() << endl;
         execl("../../server/certificates/signcsr.sh", "signcsr.sh", location.c_str(), user, (char*)0);
       }
       else{
