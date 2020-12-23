@@ -54,7 +54,8 @@ int main(int argc, char **argv) {
 	sin.sin_family = AF_INET;
 	sin.sin_port = htons(DEFAULT_PORT);
 
-	he = gethostbyname("localhost"); // gethostbyname("www.cs.columbia.edu");
+	he = gethostbyname("localhost"); 
+	// he = gethostbyname("www.cs.columbia.edu");
 	memcpy(&sin.sin_addr, (struct in_addr *)he->h_addr, he->h_length);
 	if (connect(sock, (struct sockaddr *)&sin, sizeof sin) < 0) {
 		perror("connect");

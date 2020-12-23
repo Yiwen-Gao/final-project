@@ -16,11 +16,6 @@
 #include <openssl/err.h>
 #include <openssl/x509.h>
 
-/*
- * Compile with -lssl -lcrypto
- *
- */
-
 const int DEFAULT_PORT = 443;
 const std::string TRUSTED = "./trusted_certificates/";
 

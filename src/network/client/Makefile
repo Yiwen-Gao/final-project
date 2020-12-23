@@ -4,6 +4,7 @@ CXX = g++
 INCLUDES =
 CFLAGS = -g -Wall $(INCLUDES)
 CXXFLAGS = -g -Wall $(INCLUDES)
+DEPS = conn.h 
 
 LDFLAGS = -g
 LDLIBS = -lssl -lcrypto
@@ -13,11 +14,13 @@ default: getcert changepw
 
 getcert: getcert.o
 
-getcert.o: getcert.cpp
-
 changepw: changepw.o
 
-changepw.o: changepw.cpp
+sendmsg: conn.o client-conn.o sendmsg.o
+	$(CC) $(LDFLAGS) conn.o server-conn.o server.o $(LDLIBS) -o sendmsg 
+
+%.o: %.c $(DEPS)
+	$(CC) -c -o $@ $< $(CFLAGS)
 
 .PHONY: clean
 clean:

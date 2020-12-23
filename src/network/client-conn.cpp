@@ -1,5 +1,7 @@
 #include "conn.h"
 
+using namespace std;
+
 ClientConnection::ClientConnection(const char *ca_cert, const char *my_cert, const char *my_key) 
 	: Connection(ca_cert, my_cert, my_key) {
 	ClientConnection::set_sock();
@@ -19,6 +21,7 @@ void ClientConnection::set_sock() {
 }
 
 void ClientConnection::connect_server() {
+	string s = "";
     err = SSL_connect(ssl);
 	if (SSL_connect(ssl) != 1) {
 		switch (SSL_get_error(ssl, err)) {
@@ -34,7 +37,7 @@ void ClientConnection::connect_server() {
 			case SSL_ERROR_SYSCALL: s="SSL_ERROR_SYSCALL"; break;
 			case SSL_ERROR_SSL: s="SSL_ERROR_SSL"; break;
 		}
-		fprintf(stderr, "SSL error: %s\n", s);
+		cerr << "SSL error: " << s << endl;
 		ERR_print_errors_fp(stderr);
 		exit(3);
 	}

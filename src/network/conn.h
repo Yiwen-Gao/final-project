@@ -2,7 +2,12 @@
 #define CONN_H
 
 /*************************** HEADER FILES ***************************/
+#include <algorithm>
 #include <iostream>
+#include <iterator>
+#include <sstream>
+#include <string>
+#include <vector>
 extern "C" {
     #include <arpa/inet.h>
     #include <netdb.h>
@@ -17,6 +22,7 @@ extern "C" {
     #include <openssl/ssl.h>
     #include <openssl/bio.h>
     #include <openssl/err.h>
+    #include <openssl/x509.h>
 }
 
 /****************************** MACROS ******************************/
@@ -36,7 +42,7 @@ class Connection {
         SSL *ssl;
         const SSL_METHOD *meth;
         BIO *sbio;
-        int err; char *s;
+        int err; 
 
         char ibuf[INPUT_BUFFER_SIZE];
         char obuf[OUTPUT_BUFFER_SIZE];
@@ -53,8 +59,8 @@ class Connection {
 
         void set_certs();
         void set_bio();
-        bool write();
-        bool read();
+        std::string recv();
+        void send(std::string msg);
 };
 
 class ClientConnection : public Connection {
@@ -79,6 +85,7 @@ class ServerConnection : public Connection {
         REQ parse_req();
     private:
         std::string req;
+        int client;
 };
 
 #endif

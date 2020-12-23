@@ -71,3 +71,31 @@ void Connection::set_bio() {
     BIO_set_fd(sbio, sock, BIO_NOCLOSE);
     SSL_set_bio(ssl, sbio, sbio);
 }
+
+string Connection::recv() {
+    string msg = "";
+    int ilen;
+
+    while ((ilen = SSL_read(ssl, ibuf, sizeof ibuf - 1)) > 0) {
+        ibuf[ilen] = '\0';
+        printf("%s", ibuf);
+        msg += ibuf;
+        if (msg.substr( msg.length() - 2 ) == "\n\n") {
+            cout << "finished recv" << endl;
+            return msg;
+        }
+    }
+
+    return "";
+}
+
+void Connection::send(string msg) {
+    int start = 0;
+    while (start < msg.length()) {
+        int size = min(strlen(obuf) - 1, msg.length() - start);
+        memset(obuf, '\0', strlen(obuf));
+        strncpy(obuf, msg.substr(start).c_str(), size);
+        SSL_write(ssl, obuf, strlen(obuf));
+        start += strlen(obuf);
+    }
+}
