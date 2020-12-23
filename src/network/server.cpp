@@ -261,11 +261,13 @@ static int ca_exec(void *fd){
   cout << "now in ca_exec" << endl;
   close(cpipe[0][0]);
   close(cpipe[1][1]);
-  FILE* uid = fopen("/proc/self/uid_map", "w");
-  char *line = "0 2852512 1000\n";
+  string proc = "/proc/self/uid_map";
+  FILE* uid = fopen(proc.c_str(), "w");
+  char *line = "0 1042 1\n";
   fwrite(line, 1, strlen(line), uid);
   fclose(uid);
-  seteuid(40);
+  seteuid(1042);
+  cout << geteuid() << endl;
   char instr[4];
   while(true){
     if(read(cpipe[1][0], instr, 4) <= 0){
@@ -312,6 +314,7 @@ static int ca_exec(void *fd){
         name += ".csr.pem";
         cout << name.c_str() << endl;
         FILE *csr = fopen(name.c_str(), "wb");
+        cout << errno << endl;
         fwrite(req, length, 1, csr);
         execl("../../server/certificates/signcsr.sh", "signcsr.sh", location.c_str(), user, (char*)0);
       }
