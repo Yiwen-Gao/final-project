@@ -25,24 +25,24 @@ void setup_spaces(){
   if(clone(mail_exec, mstack+STACK, flags, &mpipe)<0){
       perror("failed to clone");
   }
-//  close(mpipe[0][1]);
-//  close(mpipe[1][0]);
+  close(mpipe[0][1]);
+  close(mpipe[1][0]);
 
   pipe(ppipe[0]);
   pipe(ppipe[1]);
   if(clone(password_exec, pstack+STACK, flags, &ppipe)<0){
       perror("failed to clone");
   }
-//  close(ppipe[0][1]);
-//  close(ppipe[1][0]);
+  close(ppipe[0][1]);
+  close(ppipe[1][0]);
 
   pipe(cpipe[0]);
   pipe(cpipe[1]);
   if(clone(ca_exec, cstack+STACK, flags, &cpipe)<0){
       perror("failed to clone");
   }
-//  close(cpipe[0][1]);
-//  close(cpipe[1][0]);
+  close(cpipe[0][1]);
+  close(cpipe[1][0]);
 }
 
 
@@ -179,7 +179,7 @@ static int password_exec(void *fd){
       break;
     }
     cout << "read" << endl;
-    if(strncmp(instr, "verp", 4)){
+    if(!strncmp(instr, "verp", 4)){
       char user[50];
       read(ppipe[1][0], user, 50);
       char password[100];
@@ -191,19 +191,21 @@ static int password_exec(void *fd){
       }
       else if(pi == 0){
         //dup2(ppipe[0][1], STDOUT_FILENO);
+        cout << "child starting" << endl;
         close(ppipe[0][1]);
-        execl("/../passwords/verify-pw", "verify-pw", user, password, (char*)0);
-        perror("execl error");
+        cout << "child happening" << endl;
+        execl("../passwords/verify-pw", "verify-pw", user, password, (char*)0);
+        cout << errno << endl;
       }
       else {
         waitpid(pi, &status, 0);
         if(status){
-          perror("failed to verify password");
+          cout << "failed to verify password" << endl;
         }
         write(ppipe[0][1], &status, sizeof(int));
       }
     }
-    else if(strncmp(instr, "setp", 4)){
+    else if(!strncmp(instr, "setp", 4)){
       char user[50];
       read(ppipe[1][0], user, 50);
       char prev[100];
