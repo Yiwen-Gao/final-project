@@ -2,7 +2,7 @@
 
 int main(int argc, char* argv[]) {
     if (argc < 3) {
-        cerr << "usage: ./verify-pw <username> <password>" << endl;
+        cout << "usage: ./verify-pw <username> <password>" << endl;
         exit(1);
     }
 
@@ -10,10 +10,10 @@ int main(int argc, char* argv[]) {
     string password = argv[2];
     
     if (verify_user(username, password)) {
-        cerr << "verify-pw: correct password" << endl;
+        cout << "verify-pw: correct password" << endl;
         return 0;
     } else {
-        cerr << "verify-pw: incorrect username or password" << endl;
+        cout << "verify-pw: incorrect username or password" << endl;
         return 1;
     }
 }
