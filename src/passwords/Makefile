@@ -9,6 +9,9 @@ DEPS = db-manager.h
 LDFLAGS = -g
 LDLIBS = -lcrypt
 
+.PHONY: default
+default: crypt-pw verify-pw change-pw
+
 crypt-pw: db-manager.o crypt-pw.o
 	$(CC) $(LDFLAGS) db-manager.o crypt-pw.o $(LDLIBS) -o crypt-pw 
 	cp crypt-pw ../../server/passwords
@@ -20,6 +23,10 @@ verify-pw: db-manager.o verify-pw.o
 change-pw: db-manager.o change-pw.o
 	$(CC) $(LDFLAGS) db-manager.o change-pw.o $(LDLIBS) -o change-pw 
 	cp change-pw ../../server/passwords
+
+add-user: db-manager.o add-user.o
+	$(CC) $(LDFLAGS) db-manager.o add-user.o $(LDLIBS) -o add-user 
+	cp add-user ../../server/passwords
 
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)

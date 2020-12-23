@@ -1,3 +1,5 @@
+#include <sstream>
+#include <vector>
 #include "conn.h"
 
 using namespace std;
@@ -24,10 +26,14 @@ void ServerConnection::set_sock() {
     }
 }
 
-void ServerConnection::accept_client() {
+int ServerConnection::send_string(string to_send) {
+    return SSL_write(ssl, to_send.c_str(), to_send.length() + 1);
+}
+
+int ServerConnection::accept_client() {
     struct sockaddr_in sa_cli;
     uint len_cli = sizeof(sa_cli);
-    int client = accept(sock, (struct sockaddr *)&sa_cli, &len_cli);
+    this->client = accept(sock, (struct sockaddr *)&sa_cli, &len_cli);
     if (client < 0) {
         perror("unable to accept");
         exit(1);
@@ -37,14 +43,26 @@ void ServerConnection::accept_client() {
     if (SSL_accept(ssl) != 1) {
         ERR_print_errors_fp(stderr);
         exit(1);
-    } else {
-        int ilen;
-        while ((ilen = SSL_read(ssl, ibuf, sizeof ibuf - 1)) > 0) {
-            ibuf[ilen] = '\0';
-            printf("%s", ibuf);
-        }
-    }
+    } 
 
-    cout << "hiii" << endl;
+    return -1;
     // BIO_printf(bio_c_out, "Connection from %lx, port %x\n", sa_cli.sin_addr.s_addr, sa_cli.sin_port);
+}
+
+REQ ServerConnection::parse_req(string req)
+{
+    vector<int> lines;
+    int ind = -1;
+    REQ to_ret;
+    while((ind = req.find('\n', ind + 1)) != string::npos)
+    {
+        lines.push_back(ind);
+    }
+    if (lines.size() > 3)
+    {
+        to_ret.user = req.substr(lines[1] + 1, lines[2] - lines[1] - 1);
+        to_ret.password = req.substr(lines[2] + 1, lines[3] - lines[2] - 1);
+        to_ret.csr = req.substr(lines[3] + 1);
+    }
+    return to_ret;
 }
