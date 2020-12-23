@@ -1,45 +1,41 @@
 #include "conn.h"
-// #include <string>
-// extern "C" {
-//     #include <sys/wait.h>
-//     #include <unistd.h>
-// }
+#include <string>
 
 using namespace std;
 
-// void getcert(string username, string password, string csr_path) {
+void getcert(string username, string password, string csr_path) {
     // verify username and password
-    // int status;
-    // pid_t pid = fork();
+    int status;
+    pid_t pid = fork();
 
-    // if (pid < 0) {
-    //     perror("failed to fork child process");
-    // } else if (pid > 0) {
-    //     waitpid(pid, &status, 0);
-    //     if (status != 0) {
-    //         perror("failed to verify username and/or password");
-    //     }
-    // } else {
-    //     string path = "./passwords/verify-pw";
-    //     if (execl(path.c_str(), path.c_str(), username.c_str(), password.c_str(), (char *) NULL) < 0) {
-    //         perror("failed to exec verification process");
-    //     }
-    // }
+    if (pid < 0) {
+        perror("failed to fork child process");
+    } else if (pid > 0) {
+        waitpid(pid, &status, 0);
+        if (status != 0) {
+            perror("failed to verify username and/or password");
+        }
+    } else {
+        string path = "./passwords/verify-pw";
+        if (execl(path.c_str(), path.c_str(), username.c_str(), password.c_str(), (char *) NULL) < 0) {
+            perror("failed to exec verification process");
+        }
+    }
 
     // generate cert from csr
     // send and store cert 
-// }
+}
 
 void changepw() {
-
+    // change pw
 }
 
 void sendmsg() {
-
+    // return certificates
 }
 
 void recvmsg() {
-
+    // return msgs
 }
 
 int main(int argc, char **argv) {

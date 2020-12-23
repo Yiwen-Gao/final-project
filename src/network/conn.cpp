@@ -26,9 +26,7 @@ Connection::~Connection() {
     BIO_free(sbio);
 
     close(sock);
-    close(client);
     EVP_cleanup();
-    cout << "here" << endl;
 }
 
 void Connection::set_certs() {

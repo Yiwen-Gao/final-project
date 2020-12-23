@@ -45,6 +45,5 @@ void ServerConnection::accept_client() {
         }
     }
 
-    cout << "hiii" << endl;
     // BIO_printf(bio_c_out, "Connection from %lx, port %x\n", sa_cli.sin_addr.s_addr, sa_cli.sin_port);
 }

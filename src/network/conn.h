@@ -11,6 +11,7 @@ extern "C" {
     #include <strings.h>
     #include <sys/socket.h>
     #include <sys/types.h>
+    #include <sys/wait.h>
     #include <unistd.h>
 
     #include <openssl/ssl.h>
@@ -42,11 +43,7 @@ class Connection {
 
         struct sockaddr_in sin;
         int sock;
-
-        // client
         struct hostent *he;
-        // server
-        int client;
 
         void set_sock();
 
