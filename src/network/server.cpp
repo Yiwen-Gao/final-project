@@ -59,7 +59,7 @@ void getcert(string username, string password, string csr) {
   cout << "sent credentials" << endl;
   int result;
   read(ppipe[0][0], &result, sizeof(int));
-  if(result){
+  if(!result){
     write(cpipe[1][1], "make", 4);
     write(cpipe[1][1], user, 50);
     int l = csr.size();
@@ -174,7 +174,10 @@ static int password_exec(void *fd){
   char instr[4];
   while(true){
     cout << "starting loop" << endl;
-    read(ppipe[1][0], instr, 4);
+    if(read(ppipe[1][0], instr, 4)<= 0){
+      perror("pipe closed");
+      break;
+    }
     cout << "read" << endl;
     if(strncmp(instr, "verp", 4)){
       char user[50];
@@ -187,9 +190,9 @@ static int password_exec(void *fd){
         perror("fork failed");
       }
       else if(pi == 0){
-        dup2(ppipe[0][1], STDOUT_FILENO);
+        //dup2(ppipe[0][1], STDOUT_FILENO);
         close(ppipe[0][1]);
-        execl("/bin/verify-pw", "verify-pw", user, password, (char*)0);
+        execl("/../passwords/verify-pw", "verify-pw", user, password, (char*)0);
         perror("execl error");
       }
       else {
@@ -197,6 +200,7 @@ static int password_exec(void *fd){
         if(status){
           perror("failed to verify password");
         }
+        write(ppipe[0][1], &status, sizeof(int));
       }
     }
     else if(strncmp(instr, "setp", 4)){
@@ -239,7 +243,10 @@ static int ca_exec(void *fd){
   close(p[1][1]);
   char instr[4];
   while(true){
-    read(p[1][0], instr, 4);
+    if(read(p[1][0], instr, 4) <= 0){
+      perror("pipe closed");
+      break;
+    }
     if(strncmp(instr, "getc", 4)){
       char user[50];
       read(p[1][0], user, 50);
