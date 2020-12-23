@@ -29,7 +29,7 @@ openssl ca -config $1openssl.cnf \
 		   -in $1csr/$2.csr.pem \
 	  	   -out $1certs/$2.cert.pem
 
-chmod 444 $1certs/$2.cert.pem
+chmod 640 $1certs/$2.cert.pem
 
 # Verify the certificate
 openssl x509 -noout -text \
