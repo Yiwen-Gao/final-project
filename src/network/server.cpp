@@ -81,6 +81,8 @@ void getcert(string username, string password, string csr) {
     cout << "getting cert" << endl;
     char cert[8192];
     read(cpipe[0][0], cert, 8192);
+    string c(cert, 8192);
+    cout << c << endl;
   }
   else{
     end();
@@ -100,7 +102,7 @@ void changepw(string username, string old_password, string new_password, vector<
   char *result;
   read(ppipe[0][0], result, 1);
   if(!result){
-    return;
+    end();
   }
  write(cpipe[1][1], "make", 4);
  write(cpipe[1][1], user, 50);
@@ -111,6 +113,8 @@ void changepw(string username, string old_password, string new_password, vector<
  write(cpipe[1][1], user, 50);
  char cert[8192];
  read(cpipe[0][0], cert, 8192);
+ string c(cert, 8192);
+ cout << c << endl;
 }
 
 void sendmsg() {
@@ -252,27 +256,27 @@ static int password_exec(void *fd){
 
 static int ca_exec(void *fd){
   //prepare_mntns("../../server/certificates/");
-  int **p = *((int ***)fd);
-  close(p[0][0]);
-  close(p[1][1]);
+  //int **p = *((int ***)fd);
+  close(cpipe[0][0]);
+  close(cpipe[1][1]);
   char instr[4];
   while(true){
-    if(read(p[1][0], instr, 4) <= 0){
+    if(read(cpipe[1][0], instr, 4) <= 0){
       perror("pipe closed");
       break;
     }
-    if(strncmp(instr, "getc", 4)){
+    if(!strncmp(instr, "getc", 4)){
       char user[50];
-      read(p[1][0], user, 50);
+      read(cpipe[1][0], user, 50);
       int status;
       pid_t pi = fork();
       if(pi < 0){
         perror("fork failed");
       }
       else if(pi == 0){
-        dup2(p[0][1], STDOUT_FILENO);
-        close(p[0][1]);
-        execl("/bin/get-cert", "get-cert", user, (char*)0);
+        dup2(cpipe[0][1], STDOUT_FILENO);
+        close(cpipe[0][1]);
+        execl("../certificates/get-cert", "get-cert", user, (char*)0);
       }
       else{
         waitpid(pi, &status, 0);
@@ -281,9 +285,9 @@ static int ca_exec(void *fd){
         }
       }
     }
-    else if(strncmp(instr, "make", 4)){
+    else if(!strncmp(instr, "make", 4)){
       char user[50];
-      read(p[1][0], user, 50);
+      read(cpipe[1][0], user, 50);
       int status;
       pid_t pi = fork();
       if(pi < 0){
@@ -291,14 +295,14 @@ static int ca_exec(void *fd){
       }
       else if(pi == 0){
         int length;
-        read(p[1][0], &length, sizeof(int));
+        read(cpipe[1][0], &length, sizeof(int));
         char *req = (char *)malloc(length);
-        read(p[1][0], req, length);
+        read(cpipe[1][0], req, length);
         string name = user;
         name += ".csr.pem";
         FILE *csr = fopen(name.c_str(), "wb");
         fwrite(req, length, 1, csr);
-        execl("/scripts/signcsr.sh", "signcsr.sh", user, (char*)0);
+        execl("../../server/certificates/signcsr.sh", "signcsr.sh", user, (char*)0);
       }
       else{
         waitpid(pi, &status, 0);
