@@ -51,7 +51,7 @@ void ServerConnection::set_sock() {
 }
 
 int ServerConnection::send_string(string to_send) {
-    return SSL_write(ssl, to_send.c_str(), to_send.length() + 1);
+    return SSL_write(ssl, to_send.c_str(), to_send.length());
 }
 
 int ServerConnection::send_bytes(char *bytes, int num_bytes)
