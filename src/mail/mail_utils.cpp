@@ -12,6 +12,8 @@ namespace fs = std::filesystem;
 #define MAIL_FROM_MAX 12
 #define RCPT_TO_MAX 10
 
+const std::string mail_prefix = "./mail/";
+
 /*
 Input: (std::string) A string.
 Output: (boolean) Whether the string's characters are all alphabetic.
@@ -222,7 +224,6 @@ bool doesMailboxExist(const std::string &s)
         return false;
     }
 
-    std::string mail_prefix = "./mail/";
     std::string mailbox_path = mail_prefix + s;
     struct stat buffer;
     return (stat (mailbox_path.c_str(), &buffer) == 0);
@@ -235,7 +236,6 @@ Gives back the appropriate path to write the new mailed file to.
 */
 std::string newMailPath(const std::string &mailbox_name, const std::string &file_name)
 {
-    const std::string mail_prefix = "./mail/";
     std::string mailbox_path = mail_prefix + mailbox_name + "/" + file_name;
     return mailbox_path;
 }
@@ -260,7 +260,6 @@ and returns the next number.
 std::string get_stem(const fs::path &p) { return (p.stem().string()); }
 std::string getCurrNumber(const std::string &mailbox_name)
 {
-    std::string mail_prefix = "./mail/";
     std::string mailbox_path = mail_prefix + mailbox_name;
     std::vector<std::string> files;
 
@@ -325,7 +324,6 @@ std::string getCurrNumber(const std::string &mailbox_name)
 
 std::string getNextNumber(const std::string &mailbox_name)
 {
-    std::string mail_prefix = "./mail/";
     std::string mailbox_path = mail_prefix + mailbox_name;
     std::vector<std::string> files;
 
