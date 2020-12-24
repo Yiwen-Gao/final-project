@@ -2,6 +2,7 @@
 #include "priv.h"
 #include <vector>
 #include <pwd.h>
+#include <fstream>
 #include <sys/stat.h>
 #include <string>
 #include <filesystem>
@@ -9,8 +10,8 @@
 #include <vector>
 #include <algorithm>
 #include <regex>
-#include "mail_utils.h"
-//namespace fs = std::filesystem;
+#include "../mail/mail_utils.h"
+namespace fs = std::filesystem;
 
 #define MAILBOX_NAME_MAX 255
 #define MAIL_FROM_MAX 12
@@ -39,7 +40,8 @@ void end(){
   exit(0);
 }
 void setup_spaces(){
-  int flags = CLONE_NEWPID | CLONE_NEWNET | CLONE_NEWUTS | CLONE_NEWUSER | CLONE_NEWNS |SIGCHLD;
+  //int flags = CLONE_NEWPID | CLONE_NEWNET | CLONE_NEWUTS | CLONE_NEWUSER | CLONE_NEWNS |SIGCHLD;
+  int flags = CLONE_NEWPID | CLONE_NEWNET | CLONE_NEWUTS | CLONE_NEWNS |SIGCHLD;
 
   pipe(mpipe[0]);
   pipe(mpipe[1]);
@@ -191,16 +193,26 @@ void sendmsg(string user, vector<string> recips, ServerConnection conn) {
   }
 }
 
-string recvmsg(string user) {
-  write(cpipe[1][1], "recv", 4);
-  write(cpipe[1][1], user.c_str(), user.size());
+void recvmsg(string user, ServerConnection conn) {
+  write(mpipe[1][1], "recv", 4);
+  write(mpipe[1][1], user.c_str(), user.size());
   int l;
-  read(cpipe[0][0], &l, sizeof(int));
+  read(mpipe[0][0], &l, sizeof(int));
   if(l){
     char *message = (char*) malloc(l);
-    read(cpipe[0][0], message, l);
+    read(mpipe[0][0], message, l);
     string m(message, l);
-    return m;
+    int new_line = m.find('\n');
+    string sender = m.substr(0, new_line);
+    write(cpipe[1][1], "getc", 4);
+    write(cpipe[1][1], sender.c_str(), 50);
+    char cert[8192];
+    int len_cert;
+    read(cpipe[0][0], &len_cert, sizeof(int));
+    read(cpipe[0][0], cert, len_cert);
+    string c(cert, len_cert);
+    conn.send_string(c);
+    conn.send_bytes(message, l);
   }
 }
 
@@ -243,12 +255,12 @@ int main(int argc, char **argv) {
         resp = new CertResp(cert);
       } else if (req->type == SEND_MSG) {
         SendMsgReq sm_req = dynamic_cast<SendMsgReq&>(*req);
-        // sendmsg(sm_req.usernames);
-        resp = new MailCertResp("cert1\ncert2\ncert3");
+        sendmsg(conn.get_common_name(), sm_req.usernames, conn);
+        //resp = new MailCertResp("cert1\ncert2\ncert3");
         // TODO remove
-        conn.send(resp->get_http_content());
-        string msg = conn.recv();
-        conn.send("OK");
+        //conn.send(resp->get_http_content());
+        //string msg = conn.recv();
+        //conn.send("OK");
       } else if (req->type == RECV_MSG) {
         RecvMsgReq rm_req = dynamic_cast<RecvMsgReq&>(*req);
         // string msg = recvmsg(rm_req.username);
@@ -389,8 +401,8 @@ static int password_exec(void *fd){
       else if(pi == 0){
         //dup2(ppipe[0][1], STDOUT_FILENO);
         close(ppipe[0][1]);
-        //return 0;
-        execl("../passwords/verify-pw", "verify-pw", user, password, (char*)0);
+        return 0;
+        //execl("../passwords/verify-pw", "verify-pw", user, password, (char*)0);
         cout << errno << endl;
       }
       else {
@@ -473,23 +485,28 @@ static int ca_exec(void *fd){
       read(cpipe[1][0], user, 50);
       int status;
       
-      pid_t d =fork();
-      if(d < 0){
-        perror("fork failed");
+      cout << "HERE!" << endl;
+      string index_txt = "", line;
+      ifstream ifs ("../../server/certificates/ca/intermediate/index.txt", ifstream::in);
+      string to_find = "CN=";
+      to_find += user;
+      while (getline(ifs, line))
+      {
+            if (line.empty())
+            {
+                index_txt += "\n";
+            }
+            else if(line.find(to_find) == string::npos)
+            {
+                index_txt += line + "\n";
+            }
       }
-      else if (d == 0){
-        string ag = "/CN=";
-        ag += user;
-        ag += "/d";
-        execl("/bin/sed", "/bin/sed", "-i", ag.c_str(), "../../server/certificates/ca/intermediate/index.txt", NULL);
-      }
-      else {
-        waitpid(d, &status, 0);
-        if(status){
-          perror("failed to make certificate");
-        }
-      }
-      
+      ifs.close();
+      cout << "THERE" << endl;
+      ofstream ofs ("../../server/certificates/ca/intermediate/index.txt", ofstream::out);
+      ofs << index_txt;
+      ofs.close();
+      cout << "EVERYWHERE!" << endl;
       
       pid_t pi = fork();
       if(pi < 0){
@@ -503,7 +520,9 @@ static int ca_exec(void *fd){
         string location = "../../server/certificates/ca/intermediate/";
         string name = location + "csr/" + user;
         name += ".csr.pem";
+        cout << name << endl;
         FILE *csr = fopen(name.c_str(), "w");
+        cout << errno << endl;
         fwrite(req, 1, length, csr);
         fclose(csr);
 
@@ -769,14 +788,14 @@ Checks the current highest numbering of the messages in the mailbox
 and returns the next number.
 */
 
-std::string get_stem(const filesystem::path &p) { return (p.stem().string()); }
+std::string get_stem(const std::filesystem::path &p) { return (p.stem().string()); }
 std::string getCurrNumber(const std::string &mailbox_name)
 {
     std::string mailbox_path = mail_prefix + mailbox_name;
     std::vector<std::string> files;
 
     // Iterate over the directory
-    for(const auto & entry : filesystem::directory_iterator(mailbox_path))
+    for(const auto & entry : std::filesystem::directory_iterator(mailbox_path))
     {
         try
         {
@@ -840,7 +859,7 @@ std::string getNextNumber(const std::string &mailbox_name)
     std::vector<std::string> files;
 
     // Iterate over the directory
-    for(const auto & entry : filesystem::directory_iterator(mailbox_path))
+    for(const auto & entry : std::filesystem::directory_iterator(mailbox_path))
     {
         try
         {

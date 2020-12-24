@@ -91,6 +91,7 @@ class ServerConnection : public Connection {
         ServerConnection(const char *ca_cert, const char *my_cert, const char *my_key);
         void set_sock();
         int accept_client();
+        int send_bytes(char *bytes, int num_bytes);
         std::string get_common_name();
         void close_client();
         int send_string(std::string to_send);
