@@ -12,8 +12,9 @@ const char *CA_CERT = "./trusted_certs/ca-chain.cert.pem";
 const char *CLIENT_CERT = "./dummy/cert.pem";
 const char *CLIENT_KEY = "./dummy/key.pem";
 
-const string input_path = "./";
-const string output_path = "";
+const string input_path = "./input.txt";
+const string output_path = "./output.txt";
+const string credentials_path = "./creds.txt";
 
 int decrypt() {
     BIO *in = NULL, *out = NULL, *tbio = NULL;
@@ -26,20 +27,19 @@ int decrypt() {
     ERR_load_crypto_strings();
 
     /* Read in recipient certificate and private key */
-    tbio = BIO_new_file(CLIENT_KEY, "r");
+    tbio = BIO_new_file(credentials_path.c_str(), "r");
 
     if (!tbio)
         goto err;
-
+    
     rcert = PEM_read_bio_X509(tbio, NULL, 0, NULL);
     BIO_reset(tbio);
     rkey = PEM_read_bio_PrivateKey(tbio, NULL, 0, NULL);
-
     if (!rcert || !rkey)
         goto err;
 
     /* Open S/MIME message to decrypt */
-    in = BIO_new_file(input_path.c_str(), "r");
+    in = BIO_new_file("smencr.txt", "r"); // in = BIO_new_file(input_path.c_str(), "r");
     if (!in)
         goto err;
 
@@ -85,7 +85,13 @@ string read_from_file(string path) {
     string msg = "";
     ifstream input_file(path);
     if (input_file.is_open()) {
-        input_file >> msg;
+        string line;
+        while (getline(input_file, line)) {
+            if (line.length() > 0) {
+                msg += line + "\n";
+            }
+        }
+        input_file.close();
     }
 
     return msg;
@@ -97,23 +103,28 @@ int main(int argc, char *argv[]) {
 		exit(1);
 	}
 
-    string username = argv[1];
-    ClientConnection conn = ClientConnection(CA_CERT, CLIENT_CERT, CLIENT_KEY);
-    conn.connect_server();
+    // string username = argv[1];
+    // ClientConnection conn = ClientConnection(CA_CERT, CLIENT_CERT, CLIENT_KEY);
+    // conn.connect_server();
     
-    // comm with server
-    RecvMsgReq req = RecvMsgReq(username);
-	conn.send(req.get_http_content());
-    string http_content = conn.recv();
-    string body = remove_headers(http_content);
-    MailResp resp = MailResp(body);
+    // // comm with server
+    // RecvMsgReq req = RecvMsgReq(username);
+	// conn.send(req.get_http_content());
+    // string http_content = conn.recv();
+    // string body = remove_headers(http_content);
+    // MailResp resp = MailResp(body);
 
-    // output mail
-    cout << "[mail content]" << endl;
-    cout << resp.address << endl << endl;
+    // // output mail
+    // cout << "[mail content]" << endl;
+    // cout << resp.address << endl << endl;
     
-    write_to_file(input_path, resp.msg);
-    cout << read_from_file(output_path);
+    // write_to_file(input_path, resp.msg);
+    // string cert = read_from_file(CLIENT_CERT);
+    // string key = read_from_file(CLIENT_KEY);
+    // write_to_file(credentials_path, cert + key);
+
+    decrypt();
+    // cout << read_from_file(output_path);
 
 	return 0;
 }

@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
 		OpenSSL_add_all_algorithms();
 		ERR_load_crypto_strings();
 
-		tbio = BIO_new_file("signer.pem", "r");
+		tbio = BIO_new_file(CLIENT_CERT, "r");
 		if (!tbio)
 			goto err;
 		rcert = PEM_read_bio_X509(tbio, NULL, 0, NULL);
