@@ -22,7 +22,7 @@ string format_msgs(vector<string> msgs) {
 
 int main(int argc, char *argv[]) {
 	if (argc != 2) {
-		cerr << "sendmsg: missing input file" << endl;
+		cerr << "sendmsg: missing username" << endl;
 		exit(1);
 	}
 
@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	ClientConnection conn = ClientConnection(CA_CERT, CLIENT_CERT, CLIENT_KEY);
+	/*ClientConnection conn = ClientConnection(CA_CERT, CLIENT_CERT, CLIENT_KEY);
 	conn.connect_server();
 	
 	SendMsgReq req = SendMsgReq(users);
@@ -55,31 +55,122 @@ int main(int argc, char *argv[]) {
 	
 	vector<string> msgs;
 	for (auto it = resp.certs.begin(); it != resp.certs.end(); ++it) {
-		// string cert = *it;
-		// // TODO encrypt msg
-		// BIO *in = NULL, *out = NULL, *tbio = NULL;
-		// X509 *rcert = NULL;
-		// STACK_OF(X509) *recips = NULL;
-		// CMS_ContentInfo *cms = NULL;
-		// int ret = 1;
+		string cert = *it;*/
+		//write the certificate to a temporary output file called signer.pem
+		/*FILE *fp = fopen("signer.pem", "wb");
+		if (fp == NULL)
+		{
+			cerr << "Failed to open certificate file for writing" << endl;
+			return 1;
+		}
+		if (fwrite(cert.c_str(), sizeof(char), cert.length(), fp) < 0)
+		{
+			cerr << "writing to file failed" << endl;
+			return 1;
+		}
 
-		// int flags = CMS_STREAM;
+		fclose(fp);*/		
 		
-		// OpenSSL_add_all_algorithms();
-		// ERR_load_crypto_strings();
+		//create temporary file containing the message to be encrypted
+		FILE *encfp = fopen("encr.txt", "wb");
+		if (encfp == NULL)
+		{
+			cerr << "Failed to open file for writing" << endl;
+			return 1;
+		}
+		if (fwrite(msg.c_str(), sizeof(char), msg.length(), encfp) < 0)
+		{
+			cerr << "writing to file failed" << endl;
+			return 1;
+		}
 
-		// tbio = BIO_new_file("signer.pem", "r");
-		// if (!tbio) {
-		// 	//goto err;
-		// }
+		fclose(encfp);			
+		BIO *in = NULL, *out = NULL, *tbio = NULL;
+		X509 *rcert = NULL;
+		STACK_OF(X509) *recips = NULL;
+		CMS_ContentInfo *cms = NULL;
+		int ret = 1;
+	
+		int flags = CMS_STREAM;
 
-		msgs.push_back(msg);
+		OpenSSL_add_all_algorithms();
+		ERR_load_crypto_strings();
+
+		tbio = BIO_new_file("signer.pem", "r");
+		if (!tbio)
+			goto err;
+		rcert = PEM_read_bio_X509(tbio, NULL, 0, NULL);
+		
+		if (!rcert)
+			goto err;
+
+		recips = sk_X509_new_null();
+
+		if (!recips || !sk_X509_push(recips, rcert))
+			goto err;
+
+		rcert = NULL;
+
+		in = BIO_new_file("encr.txt", "r");
+
+		if (!in)
+			goto err;
+
+		cms = CMS_encrypt(recips, in, EVP_des_ede3_cbc(), flags);
+		if (!cms)
+			goto err;
+		
+		out = BIO_new_file("smencr.txt", "w");
+		if (!out)
+			goto err;
+
+		if (!SMIME_write_CMS(out, cms, in, flags))
+			goto err;
+		
+		ret = 0;		
+
+		//move these to the very end.
+		/*if (remove("encr.txt") != 0)
+		{
+			cerr << "Problem removing temp file" << endl;
+		}
+
+		if (remove("signer.pem") != 0)
+		{
+			cerr << "Problem removing temp file" << endl;
+		}*/
+
+err:
+		if (ret) {
+			fprintf(stderr, "Error Encrypting Data\n");
+			ERR_print_errors_fp(stderr);	
+		}
+
+		CMS_ContentInfo_free(cms);
+		X509_free(rcert);
+		sk_X509_pop_free(recips, X509_free);
+		BIO_free(in);
+		BIO_free(out);
+		BIO_free(tbio);
+
+		/*BIO *ins = NULL, *outs = NULL, *tbios = NULL;
+		X509 *scert = NULL;
+		EVP_PKEY *skey = NULL;
+		CMS_ContentInfo *scms = NULL;
+		int sret = 1;
+
+		int flagss = CMS_DETACHED | CMS_STREAM;
+		tbios = BIO_new_file("*/
+
+		//set msg = to the encrypted text read from the file
+	/*	msgs.push_back(msg);
 	}
 
 	string mail = format_msgs(msgs);
 	conn.send(mail);
-	conn.recv();
+	conn.recv();*/
 
 	return 0;
+
 }
 
