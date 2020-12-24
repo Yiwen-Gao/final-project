@@ -10,7 +10,7 @@
 #include <vector>
 #include <algorithm>
 #include <regex>
-#include "mail_utils.h"
+#include "../mail/mail_utils.h"
 //namespace fs = std::filesystem;
 
 #define MAILBOX_NAME_MAX 255
@@ -777,14 +777,14 @@ Checks the current highest numbering of the messages in the mailbox
 and returns the next number.
 */
 
-std::string get_stem(const filesystem::path &p) { return (p.stem().string()); }
+std::string get_stem(const std::filesystem::path &p) { return (p.stem().string()); }
 std::string getCurrNumber(const std::string &mailbox_name)
 {
     std::string mailbox_path = mail_prefix + mailbox_name;
     std::vector<std::string> files;
 
     // Iterate over the directory
-    for(const auto & entry : filesystem::directory_iterator(mailbox_path))
+    for(const auto & entry : std::filesystem::directory_iterator(mailbox_path))
     {
         try
         {
@@ -848,7 +848,7 @@ std::string getNextNumber(const std::string &mailbox_name)
     std::vector<std::string> files;
 
     // Iterate over the directory
-    for(const auto & entry : filesystem::directory_iterator(mailbox_path))
+    for(const auto & entry : std::filesystem::directory_iterator(mailbox_path))
     {
         try
         {
