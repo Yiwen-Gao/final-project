@@ -315,16 +315,17 @@ static int mail_exec(void *fd){
         close(mpipe[0][1]);
         close(mpipe[1][0]);
         string mail_box = user;
-        if (!validMailboxChars(mailbox_name) || mailbox_name.length() > MAILBOX_NAME_MAX || !doesMailboxExist(mailbox_name)){
+        if (!validMailboxChars(mail_box) || mail_box.length() > MAILBOX_NAME_MAX || !doesMailboxExist(mail_box)){
           return 1;
         }
         string next_file_num = getNextNumber(mail_box);
         string mail_path = newMailPath(mail_box, next_file_num);
-        int file = open(mail_path.c_str(), "w");
-        if(file){
-          write(file, message, l);
+        FILE *mes = fopen(mail_path.c_str(), "w");
+        if(mes){
+          fwrite(message, 1, l, mes);
         }
         free(message);
+        fclose(mes);
       }
       else {
         int status;
