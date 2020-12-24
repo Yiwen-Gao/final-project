@@ -111,7 +111,7 @@ string getcert(string username, string password, string csr) {
     return c;
   }
   else{
-    end();
+    //end();
     return "";
   }
 }
@@ -147,7 +147,7 @@ string changepw(string username, string old_password, string new_password, strin
     return c;
   }
   else{
-    end();
+    //end();
     return "";
   }
 }
@@ -168,7 +168,7 @@ void sendmsg(string user, vector<string> recips, ServerConnection conn) {
   //write(cpipe[1][1], message.c_str(), message.size());
 }
 
-void recvmsg(string user) {
+string recvmsg(string user) {
   write(cpipe[1][1], "recv", 4);
   write(cpipe[1][1], user.c_str(), user.size());
   int l;
@@ -177,7 +177,7 @@ void recvmsg(string user) {
     char *message = (char*) malloc(l);
     read(cpipe[0][0], message, l);
     string m(message, l);
-    conn.send_string(m);
+    return m;
   }
 }
 
