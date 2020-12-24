@@ -9,8 +9,8 @@
 using namespace std;
 
 const char *CA_CERT = "./trusted_certs/ca-chain.cert.pem";
-const char *CLIENT_CERT = "./dummy/cert.pem";
-const char *CLIENT_KEY = "./dummy/key.pem";
+//const char *CLIENT_CERT = "./dummy/cert.pem";
+//const char *CLIENT_KEY = "./dummy/key.pem";
 
 string format_msgs(vector<string> msgs) {
 	string mail = "";
@@ -30,6 +30,14 @@ int main(int argc, char *argv[]) {
 
 	cout << "separate users by newlines; separate users from message by two newlines; terminate msg with a period and a newline" << endl;
 	string username = argv[1];
+
+	string client_cert = "./certificates/" + username + ".cert.pem";
+	string client_key = "./csr/private/" + username + ".key.pem";
+
+	const char *CLIENT_CERT = client_cert.c_str();
+	const char *CLIENT_KEY = client_key.c_str();
+
+
 	vector<string> users;
 	string line, msg;
 	bool is_recpts = true;
