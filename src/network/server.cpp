@@ -203,8 +203,8 @@ int main(int argc, char **argv) {
       if (req->type == GET_CERT) {
         GetCertReq gc_req = dynamic_cast<GetCertReq&>(*req);
         string cert = getcert(gc_req.username, gc_req.password, gc_req.csr);
-        conn.send(cert);
-        resp = CertResp(cert);
+        conn.send_string(cert);
+       // resp = CertResp(cert);
       } else if (req->type == CHANGE_PW) {
         ChangePWReq cp_req = dynamic_cast<ChangePWReq&>(*req);
         string cert = changepw(cp_req.username, cp_req.old_password, cp_req.new_password, cp_req.csr);
@@ -289,8 +289,8 @@ static int password_exec(void *fd){
       else if(pi == 0){
         //dup2(ppipe[0][1], STDOUT_FILENO);
         close(ppipe[0][1]);
-        //return 0;
-        execl("../passwords/verify-pw", "verify-pw", user, password, (char*)0);
+        return 0;
+        //execl("../passwords/verify-pw", "verify-pw", user, password, (char*)0);
         cout << errno << endl;
       }
       else {
