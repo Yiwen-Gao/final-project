@@ -283,13 +283,13 @@ std::string getCurrNumber(const std::string &mailbox_name)
         // Check that file is appropriate length
         if (file_name.length() > 5)
         {
-            return "ERROR";
+            continue;
         }
 
         // Check that file ONLY has numbers
         if (!isNumeric(file_name))
         {
-            return "ERROR";
+            continue;
         }
         
         file_name.erase(0, file_name.find_first_not_of('0'));
