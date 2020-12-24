@@ -24,17 +24,15 @@ fi
 #	-in temp.csr.pem \
 #	-out ../certificates/$1-selfsignedcert.cert.pem
 
-openssl req -passout pass:$2 \
-	-passin pass:$2 \
+openssl req -passin pass:$2 \
     -key csr/private/$1.key.pem -sha256\
-	-new -sha256 -out csr/$1.selfsignedcsr.pem
+	-new -out csr/$1.selfsignedcsr.pem
 
 openssl x509 -req -in csr/$1.selfsignedcsr.pem \
 	-passin pass:$2 \
 	-CA certificates/$1.cert.pem \
 	-CAkey csr/private/$1.key.pem \
 	-CAcreateserial -out certificates/$1.selfsignedcert.pem \
-	-CAcreateserial \
 	-days 500
 
 #openssl ca -config openssl.cnf \
