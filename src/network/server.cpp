@@ -205,6 +205,7 @@ int main(int argc, char **argv) {
     unshare(CLONE_NEWUSER | CLONE_NEWNS | CLONE_NEWPID);
     while (true) {
       conn.accept_client();
+      cout << "LOOK AT ME IM A TWEE: " << conn.get_common_name() << endl;
       string http_content = conn.recv();
       BaseReq *req = parse_req(http_content);
       BaseResp resp;
@@ -393,11 +394,11 @@ static int ca_exec(void *fd){
         perror("fork failed");
       }
       else if (d == 0){
-        string ag = "\'/CN=";
+        string ag = "/CN=";
         ag += user;
-        ag += "/d\'";
+        ag += "/d";
         cout << "wed sedding boiiiiis: " << ag << endl;
-        execl("/bin/sed", "/bin/sed", "-i", ag.c_str(), "../../server/certificates/ca/intermediate/index.txt");
+        execl("/bin/sed", "/bin/sed", "-i", ag.c_str(), "../../server/certificates/ca/intermediate/index.txt", NULL);
       }
       else {
         waitpid(d, &status, 0);
