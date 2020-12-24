@@ -256,7 +256,73 @@ Output: (std::string) Next message name in current mailbox.
 Checks the current highest numbering of the messages in the mailbox
 and returns the next number.
 */
+
 std::string get_stem(const fs::path &p) { return (p.stem().string()); }
+std::string getCurrNumber(const std::string &mailbox_name)
+{
+    std::string mail_prefix = "./mail/";
+    std::string mailbox_path = mail_prefix + mailbox_name;
+    std::vector<std::string> files;
+
+    // Iterate over the directory
+    for(const auto & entry : fs::directory_iterator(mailbox_path))
+    {
+        try
+        {
+            files.push_back(get_stem(entry.path()));
+        }
+        catch(...)
+        {
+            return "ERROR";
+        }
+    }
+
+    // Get the maximum number file
+    int max = 0;
+    for(std::string file_name : files)
+    {
+        // Check that file is appropriate length
+        if (file_name.length() > 5)
+        {
+            return "ERROR";
+        }
+
+        // Check that file ONLY has numbers
+        if (!isNumeric(file_name))
+        {
+            return "ERROR";
+        }
+        
+        file_name.erase(0, file_name.find_first_not_of('0'));
+        int num;
+
+        // Check that file can be converted to a number
+        try
+        {
+            num = std::stoi(file_name);
+        }
+        catch(std::invalid_argument &e)
+        {
+            return "ERROR";
+        }
+        
+        if (num > max)
+        {
+            max = num;
+        }
+    }
+
+    // Format new file number in ##### format
+    int new_num = max;
+    std::string num_str = std::to_string(new_num);
+    while(num_str.length() < 5)
+    {
+        num_str = "0" + num_str;
+    }
+
+    return num_str;
+}
+
 std::string getNextNumber(const std::string &mailbox_name)
 {
     std::string mail_prefix = "./mail/";
