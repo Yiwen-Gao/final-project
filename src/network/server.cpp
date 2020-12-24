@@ -204,15 +204,19 @@ int main(int argc, char **argv) {
         GetCertReq gc_req = dynamic_cast<GetCertReq&>(*req);
         string cert = getcert(gc_req.username, gc_req.password, gc_req.csr);
         conn.send_string(cert);
-        resp = CertResp(cert);
+        resp = new CertResp(cert);
       } else if (req->type == CHANGE_PW) {
         ChangePWReq cp_req = dynamic_cast<ChangePWReq&>(*req);
         string cert = changepw(cp_req.username, cp_req.old_password, cp_req.new_password, cp_req.csr);
         resp = new CertResp(cert);
       } else if (req->type == SEND_MSG) {
-        SendMsgUsersReq smu_req = dynamic_cast<SendMsgUsersReq&>(*req);
+        SendMsgReq smu_req = dynamic_cast<SendMsgReq&>(*req);
         // sendmsg(smu_req.usernames);
         resp = new MailCertResp("cert1\ncert2\ncert3");
+        // TODO remove
+        conn.send(resp->get_http_content());
+        string msg = conn.recv();
+        conn.send("OK");
       } else if (req->type == RECV_MSG) {
         RecvMsgReq rm_req = dynamic_cast<RecvMsgReq&>(*req);
         // string msg = recvmsg(rm_req.username);
@@ -221,7 +225,7 @@ int main(int argc, char **argv) {
         cerr << "./server: invalid http request" << endl;
       }
 
-      //conn.send(resp->get_http_content());
+      // conn.send(resp->get_http_content());
       conn.close_client();
       delete req;
       delete resp;

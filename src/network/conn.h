@@ -128,21 +128,21 @@ struct ChangePWReq : public BaseReq {
     std::string get_body();
 };
 
-struct SendMsgUsersReq : public BaseReq {
+struct SendMsgReq : public BaseReq {
     std::vector<std::string> usernames;
-    SendMsgUsersReq(std::vector<std::string> usernames);
-    SendMsgUsersReq(std::string usernames);
+    SendMsgReq(std::vector<std::string> usernames);
+    SendMsgReq(std::string usernames);
     std::string get_header();
     std::string get_body();
 };
 
-struct SendMsgMailReq : public BaseReq {
-    std::vector<std::string> msgs;
-    SendMsgMailReq(std::vector<std::string> msgs);
-    SendMsgMailReq(std::string msgs);
-    std::string get_header();
-    std::string get_body();
-};
+// struct SendMsgMailReq : public BaseReq {
+//     std::vector<std::string> msgs;
+//     SendMsgMailReq(std::vector<std::string> msgs);
+//     SendMsgMailReq(std::string msgs);
+//     std::string get_header();
+//     std::string get_body();
+// };
 
 struct RecvMsgReq : public BaseReq {
     std::string username;

@@ -81,44 +81,44 @@ string ChangePWReq::get_body() {
 }
 
 // sendmsg to retrieve users req
-SendMsgUsersReq::SendMsgUsersReq(vector<string> usernames) {
+SendMsgReq::SendMsgReq(vector<string> usernames) {
     type = SEND_MSG;
     this->usernames = usernames;
 }
 
-SendMsgUsersReq::SendMsgUsersReq(string usernames) {
+SendMsgReq::SendMsgReq(string usernames) {
     type = SEND_MSG;
     this->usernames = str_to_vec(usernames);
 }
 
-string SendMsgUsersReq::get_header() {
+string SendMsgReq::get_header() {
     return "GET " SEND_MSG " HTTP/1.0\n";
 }
 
-string SendMsgUsersReq::get_body() {
+string SendMsgReq::get_body() {
     string data = vec_to_str(this->usernames);
     return CONTENT_OP + " " + to_string(data.length()) + "\n" + data;  
 }
 
-// sendmsg to mail req
-SendMsgMailReq::SendMsgMailReq(vector<string> msgs) {
-    type = SEND_MSG;
-    this->msgs = msgs;
-}
+// // sendmsg to mail req
+// SendMsgMailReq::SendMsgMailReq(vector<string> msgs) {
+//     type = SEND_MSG;
+//     this->msgs = msgs;
+// }
 
-SendMsgMailReq::SendMsgMailReq(string msgs) {
-    type = SEND_MSG;
-    this->msgs = str_to_vec(msgs);
-}
+// SendMsgMailReq::SendMsgMailReq(string msgs) {
+//     type = SEND_MSG;
+//     this->msgs = str_to_vec(msgs);
+// }
 
-string SendMsgMailReq::get_header() {
-    return "POST " SEND_MSG " HTTP/1.0\n";
-}
+// string SendMsgMailReq::get_header() {
+//     return "POST " SEND_MSG " HTTP/1.0\n";
+// }
 
-string SendMsgMailReq::get_body() {
-    string data = vec_to_str(this->msgs);
-    return CONTENT_OP + " " + to_string(data.length()) + "\n" + data;  
-}
+// string SendMsgMailReq::get_body() {
+//     string data = vec_to_str(this->msgs);
+//     return CONTENT_OP + " " + to_string(data.length()) + "\n" + data;  
+// }
 
 // recvmsg req
 RecvMsgReq::RecvMsgReq(string username) {
@@ -152,11 +152,7 @@ BaseReq *parse_req(string &http_content) {
     } else if (type == CHANGE_PW) {
         return new ChangePWReq(body);
     } else if (type == SEND_MSG) {
-        if (verb == "GET") {
-            return new SendMsgUsersReq(body);
-        } else {
-            return new SendMsgMailReq(body);
-        }
+        return new SendMsgReq(body);
     } else if (type == RECV_MSG) {
         return new RecvMsgReq(body);
     } else {
