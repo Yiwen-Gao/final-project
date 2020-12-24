@@ -80,7 +80,7 @@ void setup_spaces(){
 
 
 
-void getcert(string username, string password, string csr) {
+string getcert(string username, string password, string csr) {
   char user[50];
   char pass[100];
   strncpy(user, username.c_str(), 50);
@@ -108,9 +108,11 @@ void getcert(string username, string password, string csr) {
     read(cpipe[0][0], cert, l);
     string c(cert, l);
     cout << c << endl;
+    return c;
   }
   else{
     end();
+    return "";
   }
 }
 
@@ -155,7 +157,7 @@ int main(int argc, char **argv) {
     //     perror("usage: ./server <ca_cert> <server_cert> <server_key>");
     //     exit(1);
     // }
-    // setup_spaces();
+    setup_spaces();
 
     const char *CA_CERT = "../../server/certificates/ca/certs/ca.cert.pem"; // *(++argv);
     const char *SERVER_CERT = "../../server/certificates/ca/intermediate/certs/localhost.cert.pem"; // *(++argv);
@@ -168,7 +170,8 @@ int main(int argc, char **argv) {
     cout << "user: " << req.user << endl;
     cout << "pass: " << req.password << endl;
     cout << "csr: " << endl << req.csr << endl;
-    getcert(req.user, req.password, req.csr);
+    string to_send = getcert(req.user, req.password, req.csr);
+    conn.send_string(to_send);
     cout << "au revoir" << endl;
 }
 
