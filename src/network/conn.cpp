@@ -81,11 +81,11 @@ string Connection::recv() {
     return msg;
 }
 
-vector<string> Connection::get_sendmsg_messages(int num_messages) {
-    string msg = "";
+vector<char *> Connection::get_sendmsg_messages(int num_messages, vector<int> &sizes) {
+    char *msg;
     int ilen, ind, size;
     size_t read;
-    vector<string> messages;
+    vector<char *> messages;
     for (ind = 0; ind < num_messages; ++ind)
     {
         if (!(ilen = SSL_read(ssl, &size, sizeof(int)) > 0))
@@ -93,21 +93,13 @@ vector<string> Connection::get_sendmsg_messages(int num_messages) {
             messages.push_back("");
             return messages;
         }
-        read = 0;
-        msg = "";
-        while (read < size)
+        sizes.push_back(size);
+        msg = (char *) malloc(size);
+        if (!(ilen = SSL_read(ssl, msg, size) > 0))
         {
-            int to_read = sizeof ibuf - 1;
-            if (to_read > size)
-            {
-               to_read = size; 
-            }
-            if (!(ilen = SSL_read(ssl, ibuf, to_read)) > 0)
-            {
-                messages.push_back("");
-                return messages;
-            }
-            msg += ibuf;
+            messages.push_back(NULL);
+            free(msg);
+            return messages;
         }
         messages.push_back(msg);
     }

@@ -36,9 +36,12 @@ void setup_spaces(){
   string proc = "/proc/";
   proc += to_string(mp);
   proc += "/uid_map";
-  FILE* uid = fopen(proc.c_str(), "w");
-  char *line = "0 1042 1\n";
-  fwrite(line, 1, strlen(line), uid);
+  struct passwd *pw = getpwnam("mail-writer");
+  FILE *uid = fopen(proc.c_str(), "w");
+  string entry = "0 ";
+  entry += to_string((int)pw->pw_uid);
+  entry += " 1\n";
+  fwrite(entry.c_str(), 1, strlen(entry.c_str()), uid);
   fclose(uid);
 
   pipe(ppipe[0]);
@@ -49,7 +52,7 @@ void setup_spaces(){
   }
   close(ppipe[0][1]);
   close(ppipe[1][0]);
- /* proc = "/proc/";
+  /*proc = "/proc/";
   proc += pp;
   proc += "/uid_map";
   uid = fopen(proc.c_str(), "w");
@@ -68,9 +71,9 @@ void setup_spaces(){
   proc = "/proc/";
   proc += to_string(cp);
   proc += "/uid_map";
-  struct passwd *pw = getpwnam("cert-writer");
+  pw = getpwnam("cert-writer");
   uid = fopen(proc.c_str(), "w");
-  string entry = "0 ";
+  entry = "0 ";
   entry += to_string((int)pw->pw_uid);
   entry += " 1\n";
   fwrite(entry.c_str(), 1, strlen(entry.c_str()), uid);
@@ -144,9 +147,12 @@ string changepw(string username, string old_password, string new_password, strin
 }
 
 void sendmsg(string user, vector<string> recips, ServerConnection conn) {
+  string header = user;
   for(string rec : recips){
+    header += ",";
+    header += rec;
     write(cpipe[1][1], "getc", 4);
-    write(cpipe[1][1], user.c_str(), user.size());
+    write(cpipe[1][1], user.c_str(), 50);
     char cert[8192];
     int l;
     read(cpipe[0][0], &l, sizeof(int));
@@ -154,9 +160,19 @@ void sendmsg(string user, vector<string> recips, ServerConnection conn) {
     string c(cert, l);
     conn.send_string(c);
   }
-  //string message;
-  //write(cpipe[1][1], "send", 4);
-  //write(cpipe[1][1], message.c_str(), message.size());
+  header += "\n";
+  vector<int> sizes;
+  vector<char *> messages = conn.get_sendmsg_messages(recips.size(), sizes);
+  int index = 0;
+  for(string rec : recips){
+    write(mpipe[1][1], "send", 4);
+    write(mpipe[1][1], user.c_str(), 50);
+    int curr_len = header.size() + sizes[index];
+    write(mpipe[1][1], &curr_len, sizeof(int));
+    write(mpipe[1][1], header.c_str(), header.size());
+    write(mpipe[1][1], messages[index], sizes[index]);
+    free(messages[index++]);
+  }
 }
 
 string recvmsg(string user) {
@@ -259,13 +275,68 @@ static void prepare_mntns(char *rootfs)
 
 static int mail_exec(void *fd){
   //prepare_mntns("/mail/");
-  int **p = *((int ***)fd);
-  close(p[0][0]);
-  close(p[1][1]);
+  //int **p = *((int ***)fd);
+  close(mpipe[0][0]);
+  close(mpipe[1][1]);
   char instr[4];
-  while(read(p[1][0], instr, 4)){
-    // new process fork and exec to send message
+  while(true){
+    if(read(mpipe[1][0], instr, 4)<= 0){
+      //perror("ppipe closed");
+      break;
+    }
+    if(!strncmp(instr, "send", 4)){
+      char user[50];
+      read(mpipe[1][0], user, 50);
+      int l;
+      read(mpipe[1][0], &l, sizeof(int));
+      char *message = (char*)malloc(l);
+      read(mpipe[1][0], message, l);
+      string mes(message);
+      free(message);
+      pid_t pi = fork();
+      if(pi < 0){
+        perror("fork failed");
+      }
+      else if(pi==0){
+        close(mpipe[0][1]);
+        close(mpipe[1][0]);
+        execl("../mail/mail-out", "mail-out", user, mes.c_str(), (char*)0);
+      }
+      else {
+        int status;
+        waitpid(pi, &status, 0);
+        if(status){
+          perror("failed to send mail");
+        }
+      }
+    }
+    else if(!strncmp(instr, "recv", 4)){
+      char user[50];
+      read(mpipe[1][0], user, 50);
+      pid_t pi = fork();
+      if(pi < 0){
+        perror("fork failed");
+      }
+      else if(pi==0){
+        dup2(mpipe[0][1], STDOUT_FILENO);
+        close(mpipe[0][1]);
+        close(mpipe[1][0]);
+        execl("../mail/get-mail", "get-mail", user, (char*)0);
+      }
+      else {
+        int status;
+        waitpid(pi, &status, 0);
+        if(status){
+          perror("failed to get mail");
+        }
+      }
+    }
+    else {
+      break;
+    }
   }
+  close(mpipe[0][1]);
+  close(mpipe[1][0]);
 }
 
 static int password_exec(void *fd){
@@ -292,8 +363,8 @@ static int password_exec(void *fd){
       else if(pi == 0){
         //dup2(ppipe[0][1], STDOUT_FILENO);
         close(ppipe[0][1]);
-        return 0;
-        //execl("../passwords/verify-pw", "verify-pw", user, password, (char*)0);
+        //return 0;
+        execl("../passwords/verify-pw", "verify-pw", user, password, (char*)0);
         cout << errno << endl;
       }
       else {
