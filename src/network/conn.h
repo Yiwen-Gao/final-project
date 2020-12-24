@@ -66,6 +66,7 @@ class Connection {
         void set_bio();
         std::string recv();
         void send(std::string msg);
+        std::vector<std::string> get_sendmsg_messages(int num_messages);
 };
 
 class ClientConnection : public Connection {
