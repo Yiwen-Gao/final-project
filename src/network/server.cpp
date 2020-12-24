@@ -152,12 +152,33 @@ string changepw(string username, string old_password, string new_password, strin
   }
 }
 
-void sendmsg() {
-
+void sendmsg(string user, vector<string> recips, ServerConnection conn) {
+  for(string rec : recips){
+    write(cpipe[1][1], "getc", 4);
+    write(cpipe[1][1], user.c_str(), user.size());
+    char cert[8192];
+    int l;
+    read(cpipe[0][0], &l, sizeof(int));
+    read(cpipe[0][0], cert, l);
+    string c(cert, l);
+    conn.send_string(c);
+  }
+  //string message;
+  //write(cpipe[1][1], "send", 4);
+  //write(cpipe[1][1], message.c_str(), message.size());
 }
 
-void recvmsg() {
-
+void recvmsg(string user) {
+  write(cpipe[1][1], "recv", 4);
+  write(cpipe[1][1], user.c_str(), user.size());
+  int l;
+  read(cpipe[0][0], &l, sizeof(int));
+  if(l){
+    char *message = (char*) malloc(l);
+    read(cpipe[0][0], message, l);
+    string m(message, l);
+    conn.send_string(m);
+  }
 }
 
 int main(int argc, char **argv) {
