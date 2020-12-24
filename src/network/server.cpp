@@ -116,7 +116,7 @@ string getcert(string username, string password, string csr) {
   }
 }
 
-void changepw(string username, string old_password, string new_password, vector<string> csr) {
+string changepw(string username, string old_password, string new_password, string csr) {
   char user[50];
   char old_pass[100];
   strncpy(user, username.c_str(), 50);
@@ -126,22 +126,30 @@ void changepw(string username, string old_password, string new_password, vector<
   write(ppipe[1][1], "setp", 4);
   write(ppipe[1][1], user, 50);
   write(ppipe[1][1], old_pass, 100);
-  char *result;
-  read(ppipe[0][0], result, 1);
+  int result;
+  read(ppipe[0][0], &result, sizeof(int));
   if(!result){
+    write(cpipe[1][1], "make", 4);
+    write(cpipe[1][1], user, 50);
+    int l = csr.size();
+    write(cpipe[1][1], &l, sizeof(int));
+    write(cpipe[1][1], csr.c_str(), csr.size());
+    cout << "wrote to clone" << endl;
+
+    write(cpipe[1][1], "getc", 4);
+    write(cpipe[1][1], user, 50);
+    cout << "getting cert" << endl;
+    char cert[8192];
+    read(cpipe[0][0], &l, sizeof(int));
+    read(cpipe[0][0], cert, l);
+    string c(cert, l);
+    cout << c << endl;
+    return c;
+  }
+  else{
     end();
+    return "";
   }
-  write(cpipe[1][1], "make", 4);
-  write(cpipe[1][1], user, 50);
-  for(string line : csr){
-    write(cpipe[1][1], line.c_str(), line.size());
-  }
-  write(cpipe[1][1], "getc", 4);
-  write(cpipe[1][1], user, 50);
-  char cert[8192];
-  read(cpipe[0][0], cert, 8192);
-  string c(cert, 8192);
-  cout << c << endl;
 }
 
 void sendmsg() {
@@ -277,13 +285,14 @@ static int password_exec(void *fd){
       else if(pi == 0){
         dup2(ppipe[0][1], STDOUT_FILENO);
         close(ppipe[0][1]);
-        execl("/bin/change-pw", "change-pw", user, prev, curr, (char*)0);
+        execl("../passwords/change-pw", "change-pw", user, prev, curr, (char*)0);
       }
       else{
         waitpid(pi, &status, 0);
         if(status){
           perror("failed to change password");
         }
+        write(ppipe[0][1], &status, sizeof(int));
       }
     }
     else {
