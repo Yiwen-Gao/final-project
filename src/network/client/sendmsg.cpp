@@ -223,6 +223,16 @@ err2:
 			cerr << "Problem removing temp file" << endl;
 		}
 
+		if (remove("smout.txt") != 0)
+		{
+			cerr << "Problem removing temp file" << endl;
+		}
+
+		if (remove("smencr") != 0)
+		{
+			cerr << "Problem removing temp file" << endl;
+		}
+
 		//set msg = to the encrypted text read from the file
 		msgs.push_back(msg);
 	}
