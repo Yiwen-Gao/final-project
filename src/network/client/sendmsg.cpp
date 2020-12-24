@@ -36,7 +36,8 @@ int main(int argc, char *argv[]) {
 	conn.send(users_req.get_http_content());
 
 	string http_content = conn.recv();
-	MailCertResp resp = MailCertResp(http_content);
+	string body = remove_headers(http_content);
+	MailCertResp resp = MailCertResp(body);
 	
 	// vector<string> msgs;
 	// for (auto it = resp.certs.begin(); it != resp.certs.end(); ++it) {

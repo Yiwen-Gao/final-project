@@ -223,7 +223,7 @@ int main(int argc, char **argv) {
       } else if (req->type == RECV_MSG) {
         RecvMsgReq rm_req = dynamic_cast<RecvMsgReq&>(*req);
         // string msg = recvmsg(rm_req.username);
-        resp = new MailResp("addleness\nwhaledom,wamara\nhello!!!\n");
+        resp = new MailResp("addleness\nwhaledom,wamara\n\nhello!!!\n");
       } else {
         cerr << "./server: invalid http request" << endl;
       }

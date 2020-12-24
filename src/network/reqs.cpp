@@ -28,7 +28,6 @@ GetCertReq::GetCertReq(string content) {
     {
         lines.push_back(ind);
     }
-    std::string req_line = content.substr(0, lines[0]);
     if (lines.size() > 3)
     {
         this->username = content.substr(0, lines[0]);
@@ -63,7 +62,6 @@ ChangePWReq::ChangePWReq(string content) {
     {
         lines.push_back(ind);
     }
-    std::string req_line = content.substr(0, lines[0]);
     if (lines.size() > 3)
     {
         this->username = content.substr(0, lines[0]);
@@ -124,6 +122,7 @@ string SendMsgMailReq::get_body() {
 
 // recvmsg req
 RecvMsgReq::RecvMsgReq(string username) {
+    type = RECV_MSG;
     this->username = username;
 }
 

@@ -12,6 +12,7 @@ string BaseResp::get_body() {
     return "";
 }
 
+// recv own cert resp
 CertResp::CertResp(string cert) {
     this->cert = cert;
 }
@@ -21,8 +22,13 @@ string CertResp::get_body() {
     return CONTENT_OP + " " + to_string(data.length()) + "\n" + data;
 }
 
+// recv recipient certs resp
+MailCertResp::MailCertResp(vector<string> certs) {
+    this->certs = certs;
+}
+
 MailCertResp::MailCertResp(string content) {
-    this->certs = str_to_vec(content);
+    certs = str_to_vec(content);
 }
 
 string MailCertResp::get_body() {
@@ -30,20 +36,20 @@ string MailCertResp::get_body() {
     return CONTENT_OP + " " + to_string(data.length()) + "\n" + data;
 }
 
+// recvmsg resp
 MailResp::MailResp(string content) {
-    vector<string> temp = str_to_vec(content);
-    for (uint i = 0; i < temp.size(); i++) {
-        if (i == 0) {
-            sender = temp[i];
-        } else if (i == 1) {
-            receivers = temp[i];
-        } else if (i == 2) {
-            msg = temp[i];
-        }
-    }
+    int i = content.find("\n\n");
+    address = content.substr(0, i);
+    msg = content.substr(i + 2);
 }
 
 string MailResp::get_body() {
-    string data = sender + "\n" + receivers + "\n" + msg + "\n";
+    string data = address + "\n\n" + msg + "\n";
     return CONTENT_OP + " " + to_string(data.length()) + "\n" + data;
+}
+
+string remove_headers(string &http_content) {
+    int i1 = http_content.find("\n");
+    int i2 = http_content.substr(i1 + 1).find("\n");
+    return http_content.substr(i1 + 1).substr(i2 + 1);
 }
