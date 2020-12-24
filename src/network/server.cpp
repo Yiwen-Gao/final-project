@@ -393,10 +393,11 @@ static int ca_exec(void *fd){
         perror("fork failed");
       }
       else if (d == 0){
-        string ag = "/CN=";
+        string ag = "\'/CN=";
         ag += user;
-        ag += "/d";
-        execl("sed", "sed", "-i", ag.c_str(), "../../server/certificates/ca/intermediate/index.txt");
+        ag += "/d\'";
+        cout << "wed sedding boiiiiis: " << ag << endl;
+        execl("/bin/sed", "/bin/sed", "-i", ag.c_str(), "../../server/certificates/ca/intermediate/index.txt");
       }
       else {
         waitpid(d, &status, 0);
