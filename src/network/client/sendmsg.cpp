@@ -1,4 +1,6 @@
 #include "conn.h"
+#include <fstream>
+#include <sstream>
 
 #include <openssl/pem.h>
 #include <openssl/cms.h>
@@ -7,8 +9,8 @@
 using namespace std;
 
 const char *CA_CERT = "./trusted_certs/ca-chain.cert.pem";
-const char *CLIENT_CERT = "./dummy/cert.pem";
-const char *CLIENT_KEY = "./dummy/key.pem";
+//const char *CLIENT_CERT = "./dummy/cert.pem";
+//const char *CLIENT_KEY = "./dummy/key.pem";
 
 string format_msgs(vector<string> msgs) {
 	string mail = "";
@@ -28,6 +30,14 @@ int main(int argc, char *argv[]) {
 
 	cout << "separate users by newlines; separate users from message by two newlines; terminate msg with a period and a newline" << endl;
 	string username = argv[1];
+
+	string client_cert = "./certificates/" + username + ".cert.pem";
+	string client_key = "./csr/private/" + username + ".key.pem";
+
+	const char *CLIENT_CERT = client_cert.c_str();
+	const char *CLIENT_KEY = client_key.c_str();
+
+
 	vector<string> users;
 	string line, msg;
 	bool is_recpts = true;
@@ -43,7 +53,7 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	/*ClientConnection conn = ClientConnection(CA_CERT, CLIENT_CERT, CLIENT_KEY);
+	ClientConnection conn = ClientConnection(CA_CERT, CLIENT_CERT, CLIENT_KEY);
 	conn.connect_server();
 	
 	SendMsgReq req = SendMsgReq(users);
@@ -55,9 +65,9 @@ int main(int argc, char *argv[]) {
 	
 	vector<string> msgs;
 	for (auto it = resp.certs.begin(); it != resp.certs.end(); ++it) {
-		string cert = *it;*/
+		string cert = *it;
 		//write the certificate to a temporary output file called signer.pem
-		/*FILE *fp = fopen("signer.pem", "wb");
+		FILE *fp = fopen("signer.pem", "wb");
 		if (fp == NULL)
 		{
 			cerr << "Failed to open certificate file for writing" << endl;
@@ -69,7 +79,7 @@ int main(int argc, char *argv[]) {
 			return 1;
 		}
 
-		fclose(fp);*/		
+		fclose(fp);		
 		
 		//create temporary file containing the message to be encrypted
 		FILE *encfp = fopen("encr.txt", "wb");
@@ -85,6 +95,7 @@ int main(int argc, char *argv[]) {
 		}
 
 		fclose(encfp);			
+
 		BIO *in = NULL, *out = NULL, *tbio = NULL;
 		X509 *rcert = NULL;
 		STACK_OF(X509) *recips = NULL;
@@ -129,17 +140,7 @@ int main(int argc, char *argv[]) {
 		
 		ret = 0;		
 
-		//move these to the very end.
-		/*if (remove("encr.txt") != 0)
-		{
-			cerr << "Problem removing temp file" << endl;
-		}
-
-		if (remove("signer.pem") != 0)
-		{
-			cerr << "Problem removing temp file" << endl;
-		}*/
-
+		
 err:
 		if (ret) {
 			fprintf(stderr, "Error Encrypting Data\n");
@@ -160,7 +161,8 @@ err:
 		int sret = 1;
 
 		int flagss = CMS_DETACHED | CMS_STREAM;
-		string signfilename = "./creds.txt"; // string signfilename = "./certificates/" + username + ".cert.pem";
+	
+		string signfilename = "./certificates/" + username + ".cert.pem";
 		tbios = BIO_new_file(signfilename.c_str(), "r");
 		cout << "hello" << endl;
 		if (!tbios)
@@ -212,14 +214,41 @@ err2:
 		BIO_free(ins);
 		BIO_free(outs);
 		BIO_free(tbios);
+	
+		std::ifstream encryptedandsigned;
+		encryptedandsigned.open("smout.txt");
+		
+		std::stringstream strstream;
+		strstream << encryptedandsigned.rdbuf();
+		msg = strstream.str();
+		//move these to the very end.
+		if (remove("encr.txt") != 0)
+		{
+			cerr << "Problem removing temp file" << endl;
+		}
+
+		if (remove("signer.pem") != 0)
+		{
+			cerr << "Problem removing temp file" << endl;
+		}
+
+		if (remove("smout.txt") != 0)
+		{
+			cerr << "Problem removing temp file" << endl;
+		}
+
+		if (remove("smencr") != 0)
+		{
+			cerr << "Problem removing temp file" << endl;
+		}
 
 		//set msg = to the encrypted text read from the file
-	/*	msgs.push_back(msg);
+		msgs.push_back(msg);
 	}
 
 	string mail = format_msgs(msgs);
 	conn.send(mail);
-	conn.recv();*/
+	conn.recv();
 
 	return 0;
 

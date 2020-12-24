@@ -250,8 +250,31 @@ int main(int argc, char **argv) {
 		}
 		printf("%s", ibuf);
 	}
-	fclose(certfp);
 	
+	//concatenate the private key to the end of the cert file
+	string pkeyfile = "./csr/private/" + username + ".key.pem";
+	FILE *pkeyfp = fopen(pkeyfile.c_str(), "rb");
+	if (pkeyfp == NULL)
+	{
+		cerr << "Can't open private key file" << endl;
+	 	return 1;
+	}
+
+	int j = 0;
+	char *pkeybuff[128];
+	while ((j = fread(pkeybuff, sizeof(char), sizeof(pkeybuff) - 1, pkeyfp)) > 0)
+	{
+		if (fwrite(pkeybuff, sizeof(char), j, certfp) < 0){
+			cerr << "Writing to file failed" << endl;
+			return 1;
+		}	
+	}
+	fclose(pkeyfp);
+	
+
+	fclose(certfp);
+
+	/*
 	FILE *temp2fp = fopen("temp", "wb");
 	if (temp2fp == NULL)
 	{
@@ -325,7 +348,7 @@ int main(int argc, char **argv) {
 	{
 		cerr << "failed to remove temp file" << endl;
 		return 1;
-	}
+	}*/
 
 	return 0;
 }

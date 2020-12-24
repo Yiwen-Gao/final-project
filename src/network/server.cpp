@@ -164,11 +164,36 @@ string changepw(string username, string old_password, string new_password, strin
   }
 }
 
-void sendmsg(string user, vector<string> recips, ServerConnection conn) {
-  string header = user;
+void sendmsg_test(string user, vector<string> recips, vector<char *> messages) {
+  string header = user + "\n";
   for(string rec : recips){
-    header += ",";
-    header += rec;
+    header += rec + ",";
+    write(cpipe[1][1], "getc", 4);
+    write(cpipe[1][1], user.c_str(), 50);
+    char cert[8192];
+    int l;
+    read(cpipe[0][0], &l, sizeof(int));
+    read(cpipe[0][0], cert, l);
+    string c(cert, l);
+  }
+  header += "\n";
+  vector<int> sizes;
+  int index = 0;
+  for(string rec : recips){
+    sizes.push_back( strlen(messages[index]) );
+    write(mpipe[1][1], "send", 4);
+    write(mpipe[1][1], rec.c_str(), 50);
+    int curr_len = header.size() + sizes[index];
+    write(mpipe[1][1], &curr_len, sizeof(int));
+    write(mpipe[1][1], header.c_str(), header.size());
+    write(mpipe[1][1], messages[index], sizes[index]);
+  }
+}
+
+void sendmsg(string user, vector<string> recips, ServerConnection conn) {
+  string header = user + "\n";
+  for(string rec : recips){
+    header += rec + ",";
     write(cpipe[1][1], "getc", 4);
     write(cpipe[1][1], user.c_str(), 50);
     char cert[8192];
@@ -184,12 +209,35 @@ void sendmsg(string user, vector<string> recips, ServerConnection conn) {
   int index = 0;
   for(string rec : recips){
     write(mpipe[1][1], "send", 4);
-    write(mpipe[1][1], user.c_str(), 50);
+    write(mpipe[1][1], rec.c_str(), 50);
     int curr_len = header.size() + sizes[index];
     write(mpipe[1][1], &curr_len, sizeof(int));
     write(mpipe[1][1], header.c_str(), header.size());
     write(mpipe[1][1], messages[index], sizes[index]);
     free(messages[index++]);
+  }
+}
+
+string recvmsg_test(string user, string &cert_in) {
+  write(mpipe[1][1], "recv", 4);
+  write(mpipe[1][1], user.c_str(), user.size());
+  int l;
+  read(mpipe[0][0], &l, sizeof(int));
+  if(l){
+    char *message = (char*) malloc(l);
+    read(mpipe[0][0], message, l);
+    string m(message, l);
+    int new_line = m.find('\n');
+    string sender = m.substr(0, new_line);
+    write(cpipe[1][1], "getc", 4);
+    write(cpipe[1][1], sender.c_str(), 50);
+    char cert[8192];
+    int len_cert;
+    read(cpipe[0][0], &len_cert, sizeof(int));
+    read(cpipe[0][0], cert, len_cert);
+    string c(cert, len_cert);
+    cert_in = c;
+    return m;
   }
 }
 
@@ -238,6 +286,18 @@ int main(int argc, char **argv) {
       return 0;
     }
     unshare(CLONE_NEWUSER | CLONE_NEWNS | CLONE_NEWPID);
+    /*string user = "muermo";
+    string recv_user = "muermo";
+    char *message = "hello there, I am muermo\n\n";
+    vector<string> recipients;
+    recipients.push_back(recv_user);
+    vector<char *> messages;
+    messages.push_back(message);
+    sendmsg_test(user, recipients, messages);
+    string cert;
+    string received = recvmsg_test(recv_user, cert);
+    cout << received << endl << endl;
+    cout << cert << endl;*/
     while (true) {
       conn.accept_client();
       cout << "LOOK AT ME IM A TWEE: " << conn.get_common_name() << endl;
@@ -248,11 +308,12 @@ int main(int argc, char **argv) {
         GetCertReq gc_req = dynamic_cast<GetCertReq&>(*req);
         string cert = getcert(gc_req.username, gc_req.password, gc_req.csr);
         conn.send_string(cert);
-        resp = new CertResp(cert);
+        //resp = new CertResp(cert);
       } else if (req->type == CHANGE_PW) {
         ChangePWReq cp_req = dynamic_cast<ChangePWReq&>(*req);
         string cert = changepw(cp_req.username, cp_req.old_password, cp_req.new_password, cp_req.csr);
-        resp = new CertResp(cert);
+        conn.send_string(cert);
+        //resp = new CertResp(cert);
       } else if (req->type == SEND_MSG) {
         SendMsgReq sm_req = dynamic_cast<SendMsgReq&>(*req);
         sendmsg(conn.get_common_name(), sm_req.usernames, conn);
@@ -263,8 +324,8 @@ int main(int argc, char **argv) {
         //conn.send("OK");
       } else if (req->type == RECV_MSG) {
         RecvMsgReq rm_req = dynamic_cast<RecvMsgReq&>(*req);
-        // string msg = recvmsg(rm_req.username);
-        resp = new MailResp("addleness\nwhaledom,wamara\n\nhello!!!\n");
+        recvmsg(rm_req.username, conn);
+        //resp = new MailResp("addleness\nwhaledom,wamara\n\nhello!!!\n");
       } else {
         cerr << "./server: invalid http request" << endl;
       }
@@ -319,13 +380,6 @@ static int mail_exec(void *fd){
       read(mpipe[1][0], &l, sizeof(int));
       char *message = (char*)malloc(l);
       read(mpipe[1][0], message, l);
-      pid_t pi = fork();
-      if(pi < 0){
-        perror("fork failed");
-      }
-      else if(pi==0){
-        close(mpipe[0][1]);
-        close(mpipe[1][0]);
         string mail_box = user;
         if (!validMailboxChars(mail_box) || mail_box.length() > MAILBOX_NAME_MAX || !doesMailboxExist(mail_box)){
           return 1;
@@ -338,15 +392,6 @@ static int mail_exec(void *fd){
         }
         free(message);
         fclose(mes);
-      }
-      else {
-        int status;
-        waitpid(pi, &status, 0);
-        if(status){
-          perror("failed to send mail");
-        }
-        free(message);
-      }
     }
     else if(!strncmp(instr, "recv", 4)){
       char user[50];
@@ -359,7 +404,7 @@ static int mail_exec(void *fd){
         dup2(mpipe[0][1], STDOUT_FILENO);
         close(mpipe[0][1]);
         close(mpipe[1][0]);
-        execl("../mail/get-mail", "get-mail", user, (char*)0);
+        execl("../mail/get-msg", "get-msg", user, (char*)0);
       }
       else {
         int status;
@@ -401,8 +446,8 @@ static int password_exec(void *fd){
       else if(pi == 0){
         //dup2(ppipe[0][1], STDOUT_FILENO);
         close(ppipe[0][1]);
-        return 0;
-        //execl("../passwords/verify-pw", "verify-pw", user, password, (char*)0);
+        //return 0;
+        execl("../passwords/verify-pw", "verify-pw", user, password, (char*)0);
         cout << errno << endl;
       }
       else {
@@ -485,7 +530,6 @@ static int ca_exec(void *fd){
       read(cpipe[1][0], user, 50);
       int status;
       
-      cout << "HERE!" << endl;
       string index_txt = "", line;
       ifstream ifs ("../../server/certificates/ca/intermediate/index.txt", ifstream::in);
       string to_find = "CN=";
@@ -502,11 +546,9 @@ static int ca_exec(void *fd){
             }
       }
       ifs.close();
-      cout << "THERE" << endl;
       ofstream ofs ("../../server/certificates/ca/intermediate/index.txt", ofstream::out);
       ofs << index_txt;
       ofs.close();
-      cout << "EVERYWHERE!" << endl;
       
       pid_t pi = fork();
       if(pi < 0){
@@ -520,9 +562,7 @@ static int ca_exec(void *fd){
         string location = "../../server/certificates/ca/intermediate/";
         string name = location + "csr/" + user;
         name += ".csr.pem";
-        cout << name << endl;
         FILE *csr = fopen(name.c_str(), "w");
-        cout << errno << endl;
         fwrite(req, 1, length, csr);
         fclose(csr);
 
@@ -867,7 +907,7 @@ std::string getNextNumber(const std::string &mailbox_name)
         }
         catch(...)
         {
-            return "ERROR";
+            return "ERROR1";
         }
     }
 
@@ -878,13 +918,13 @@ std::string getNextNumber(const std::string &mailbox_name)
         // Check that file is appropriate length
         if (file_name.length() > 5)
         {
-            return "ERROR";
+            continue;
         }
 
         // Check that file ONLY has numbers
         if (!isNumeric(file_name))
         {
-            return "ERROR";
+            continue;
         }
         
         file_name.erase(0, file_name.find_first_not_of('0'));
@@ -897,7 +937,7 @@ std::string getNextNumber(const std::string &mailbox_name)
         }
         catch(std::invalid_argument &e)
         {
-            return "ERROR";
+            return "ERROR4";
         }
         
         if (num > max)
