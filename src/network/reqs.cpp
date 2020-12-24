@@ -21,16 +21,13 @@ GetCertReq::GetCertReq(string username, string password, string csr) {
 }
 
 GetCertReq::GetCertReq(string content) {
-
     type = GET_CERT;
     vector<int> lines;
     int ind = -1;
-    REQ to_ret;
     while((ind = content.find('\n', ind + 1)) != string::npos)
     {
         lines.push_back(ind);
     }
-    std::string req_line = content.substr(0, lines[0]);
     if (lines.size() > 3)
     {
         this->username = content.substr(0, lines[0]);
@@ -58,16 +55,13 @@ ChangePWReq::ChangePWReq(string username, string old_password, string new_passwo
 }
 
 ChangePWReq::ChangePWReq(string content) {
-
     type = CHANGE_PW;
     vector<int> lines;
     int ind = -1;
-    REQ to_ret;
     while((ind = content.find('\n', ind + 1)) != string::npos)
     {
         lines.push_back(ind);
     }
-    std::string req_line = content.substr(0, lines[0]);
     if (lines.size() > 3)
     {
         this->username = content.substr(0, lines[0]);
@@ -128,6 +122,7 @@ string SendMsgMailReq::get_body() {
 
 // recvmsg req
 RecvMsgReq::RecvMsgReq(string username) {
+    type = RECV_MSG;
     this->username = username;
 }
 
