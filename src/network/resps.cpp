@@ -27,7 +27,6 @@ MailCertResp::MailCertResp(string content) {
 
 string MailCertResp::get_body() {
     string data = vec_to_str(certs);
-    cout << "data:" << data;
     return CONTENT_OP + " " + to_string(data.length()) + "\n" + data;
 }
 

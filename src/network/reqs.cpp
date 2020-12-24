@@ -22,19 +22,18 @@ GetCertReq::GetCertReq(string username, string password, string csr) {
 
 GetCertReq::GetCertReq(string content) {
     type = GET_CERT;
-    istringstream msg(content);
-    string line;
-    int num = 0;
-
-    while (getline(msg, line)) {
-        if (num == 0) {
-            username += line;
-        } else if (num == 1) {
-            password += line;
-        } else {
-            csr += line;
-        }
-        num++;
+    vector<int> lines;
+    int ind = -1;
+    while((ind = content.find('\n', ind + 1)) != string::npos)
+    {
+        lines.push_back(ind);
+    }
+    std::string req_line = content.substr(0, lines[0]);
+    if (lines.size() > 3)
+    {
+        this->username = content.substr(0, lines[0]);
+        this->password = content.substr(lines[0] + 1, lines[1] - lines[0] - 1);
+        this->csr = content.substr(lines[1] + 1);
     }
 }
 
@@ -58,21 +57,19 @@ ChangePWReq::ChangePWReq(string username, string old_password, string new_passwo
 
 ChangePWReq::ChangePWReq(string content) {
     type = CHANGE_PW;
-    istringstream msg(content);
-    string line;
-    int num = 0;
-
-    while (getline(msg, line)) {
-        if (num == 0) {
-            username += line;
-        } else if (num == 1) {
-            old_password += line;
-        } else if (num == 2) {
-            new_password += line;
-        } else {
-            csr += line;
-        }
-        num++;
+    vector<int> lines;
+    int ind = -1;
+    while((ind = content.find('\n', ind + 1)) != string::npos)
+    {
+        lines.push_back(ind);
+    }
+    std::string req_line = content.substr(0, lines[0]);
+    if (lines.size() > 3)
+    {
+        this->username = content.substr(0, lines[0]);
+        this->old_password = content.substr(lines[0] + 1, lines[1] - lines[0] - 1);
+        this->new_password = content.substr(lines[1] + 1, lines[2] - lines[1] - 1);
+        this->csr = content.substr(lines[2] + 1);
     }
 }
 

@@ -228,7 +228,6 @@ int main(int argc, char **argv) {
         cerr << "./server: invalid http request" << endl;
       }
 
-      cout << "[debug] sending: " << resp->get_http_content() << endl;
       conn.send(resp->get_http_content());
       conn.close_client();
       delete req;
@@ -301,6 +300,7 @@ static int password_exec(void *fd){
         cout << "child starting" << endl;
         close(ppipe[0][1]);
         cout << "child happening" << endl;
+        //return 0;
         execl("../passwords/verify-pw", "verify-pw", user, password, (char*)0);
         cout << errno << endl;
       }
@@ -385,6 +385,25 @@ static int ca_exec(void *fd){
       char user[50];
       read(cpipe[1][0], user, 50);
       int status;
+      
+      pid_t d =fork();
+      if(d < 0){
+        perror("fork failed");
+      }
+      else if (d == 0){
+        string ag = "/CN=";
+        ag += user;
+        ag += "/d";
+        execl("sed", "sed", "-i", ag.c_str(), "../../server/certificates/ca/intermediate/index.txt");
+      }
+      else {
+        waitpid(d, &status, 0);
+        if(status){
+          perror("failed to make certificate");
+        }
+      }
+      
+      
       pid_t pi = fork();
       if(pi < 0){
         perror("fork failed");

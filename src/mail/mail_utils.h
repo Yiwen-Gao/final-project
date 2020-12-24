@@ -89,6 +89,7 @@ Output: (std::string) Next message name in current mailbox.
 Checks the current highest numbering of the messages in the mailbox
 and returns the next number.
 */
+std::string getCurrNumber(const std::string &mailbox_name);
 std::string getNextNumber(const std::string &mailbox_name);
 
 std::vector<std::string> ipcHelper(FullMessage fullMessage);
