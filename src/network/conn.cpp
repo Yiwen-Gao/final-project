@@ -14,18 +14,11 @@ Connection::Connection(const char *ca_cert, const char *my_cert, const char *my_
     meth = TLS_method(); 
 	ctx = SSL_CTX_new(meth);
     Connection::set_certs();
-    ssl = SSL_new(ctx);
 }
 
 Connection::~Connection() {
-    SSL_shutdown(ssl);
-    // second call is sent to peer
-    SSL_shutdown(ssl); 
-    SSL_CTX_free(ctx);
-    SSL_free(ssl);
-    BIO_free(sbio);
-
     close(sock);
+    SSL_CTX_free(ctx);
     EVP_cleanup();
 }
 
@@ -81,12 +74,11 @@ string Connection::recv() {
         printf("%s", ibuf);
         msg += ibuf;
         if (msg.substr( msg.length() - 2 ) == "\n\n") {
-            cout << "finished recv" << endl;
-            return msg;
+            break;
         }
     }
 
-    return "";
+    return msg;
 }
 
 void Connection::send(string msg) {

@@ -71,6 +71,7 @@ class Connection {
 class ClientConnection : public Connection {
     public:
         ClientConnection(const char *ca_cert, const char *my_cert, const char *my_key);
+        ~ClientConnection();
         void set_sock();
         void connect_server();
 };
@@ -89,6 +90,7 @@ class ServerConnection : public Connection {
         ServerConnection(const char *ca_cert, const char *my_cert, const char *my_key);
         void set_sock();
         int accept_client();
+        void close_client();
         int send_string(std::string to_send);
         REQ parse_req(std::string req);
 };
@@ -96,6 +98,11 @@ class ServerConnection : public Connection {
 // base req abstract class
 struct BaseReq {
     std::string type;
+    virtual std::string get_header();
+    virtual std::string get_body();
+    std::string get_http_content() {
+        return this->get_header() + this->get_body() + "\n";
+    }
 };
 
 struct GetCertReq : public BaseReq {
@@ -106,9 +113,6 @@ struct GetCertReq : public BaseReq {
     GetCertReq(std::string content);
     std::string get_header();
     std::string get_body();
-    std::string get_http_content() {
-        return this->get_header() + this->get_body() + "\n";
-    }
 };
 
 struct ChangePWReq : public BaseReq {
@@ -120,9 +124,6 @@ struct ChangePWReq : public BaseReq {
     ChangePWReq(std::string content);
     std::string get_header();
     std::string get_body();
-    std::string get_http_content() {
-        return this->get_header() + this->get_body() + "\n";
-    }
 };
 
 struct SendMsgUsersReq : public BaseReq {
@@ -131,20 +132,14 @@ struct SendMsgUsersReq : public BaseReq {
     SendMsgUsersReq(std::string usernames);
     std::string get_header();
     std::string get_body();
-    std::string get_http_content() {
-        return this->get_header() + this->get_body() + "\n";
-    }
 };
 
 struct SendMsgMailReq : public BaseReq {
     std::vector<std::string> msgs;
+    SendMsgMailReq(std::vector<std::string> msgs);
     SendMsgMailReq(std::string msgs);
-    void add_msg(std::string msg);
     std::string get_header();
     std::string get_body();
-    std::string get_http_content() {
-        return this->get_header() + this->get_body() + "\n";
-    }
 };
 
 struct RecvMsgReq : public BaseReq {
@@ -152,15 +147,16 @@ struct RecvMsgReq : public BaseReq {
     RecvMsgReq(std::string username);
     std::string get_header();
     std::string get_body();
-    std::string get_http_content() {
-        return this->get_header() + this->get_body() + "\n";
-    }
 };
 
 struct BaseResp {
     std::string type;
     std::string get_header() {
-        return "HTTP/1.0 200 OK\n";
+        return "HTTP/1.0 200 OK";
+    }
+    virtual std::string get_body();
+    std::string get_http_content() {
+        return this->get_header() + "\n" + this->get_body() + "\n";
     }
 };
 
@@ -168,33 +164,24 @@ struct CertResp : public BaseResp {
     std::string cert;
     CertResp(std::string cert);
     std::string get_body();
-    std::string get_http_content() {
-        return this->get_header() + "\n" + this->get_body() + "\n";
-    }
 };
 
 struct MailCertResp : public BaseResp {
     std::vector<std::string> certs;
     MailCertResp(std::string content);
     std::string get_body();
-    std::string get_http_content() {
-        return this->get_header() + "\n" + this->get_body() + "\n";
-    }
 };
 
 struct MailResp : public BaseResp {
     std::string sender;
-    std::vector<std::string> receivers;
+    std::string receivers;
     std::string msg;
     MailResp(std::string content);
     std::string get_body();
-    std::string get_http_content() {
-        return this->get_header() + "\n" + this->get_body() + "\n";
-    }
 };
 
 /*********************** FUNCTION DECLARATIONS **********************/
-BaseReq parse_req(std::string &http_content);
+BaseReq *parse_req(std::string &http_content);
 
 std::string vec_to_str(std::vector<std::string> &vec);
 std::vector<std::string> str_to_vec(std::string &str);

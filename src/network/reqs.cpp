@@ -2,14 +2,26 @@
 
 using namespace std;
 
+const string CONTENT_OP = "Content-Length:";
+
+string BaseReq::get_header() {
+    return "";
+}
+
+string BaseReq::get_body() {
+    return "";
+}
+
 // getcert req
 GetCertReq::GetCertReq(string username, string password, string csr) {
+    type = GET_CERT;
     this->username = username;
     this->password = password;
     this->csr = csr;
 }
 
 GetCertReq::GetCertReq(string content) {
+    type = GET_CERT;
     istringstream msg(content);
     string line;
     int num = 0;
@@ -30,11 +42,13 @@ string GetCertReq::get_header() {
 }
 
 string GetCertReq::get_body() {
-    return this->username + "\n" + this->password + "\n" + this->csr + "\n";
+    string data = username + "\n" + password + "\n" + csr + "\n";
+    return CONTENT_OP + " " + to_string(data.length()) + "\n" + data;
 }
 
 // changepw req
 ChangePWReq::ChangePWReq(string username, string old_password, string new_password, string csr) {
+    type = CHANGE_PW;
     this->username = username;
     this->old_password = old_password;
     this->new_password = new_password;
@@ -42,6 +56,7 @@ ChangePWReq::ChangePWReq(string username, string old_password, string new_passwo
 }
 
 ChangePWReq::ChangePWReq(string content) {
+    type = CHANGE_PW;
     istringstream msg(content);
     string line;
     int num = 0;
@@ -64,15 +79,18 @@ string ChangePWReq::get_header() {
 }
 
 string ChangePWReq::get_body() {
-    return this->username + "\n" + this->old_password + "\n" + this->new_password + "\n";
+    string data = username + "\n" + old_password + "\n" + new_password + "\n"; 
+    return CONTENT_OP + " " + to_string(data.length()) + "\n" + data;
 }
 
 // sendmsg to retrieve users req
 SendMsgUsersReq::SendMsgUsersReq(vector<string> usernames) {
+    type = SEND_MSG;
     this->usernames = usernames;
 }
 
 SendMsgUsersReq::SendMsgUsersReq(string usernames) {
+    type = SEND_MSG;
     this->usernames = str_to_vec(usernames);
 }
 
@@ -81,16 +99,19 @@ string SendMsgUsersReq::get_header() {
 }
 
 string SendMsgUsersReq::get_body() {
-    return vec_to_str(this->usernames);
+    string data = vec_to_str(this->usernames);
+    return CONTENT_OP + " " + to_string(data.length()) + "\n" + data;  
 }
 
 // sendmsg to mail req
-SendMsgMailReq::SendMsgMailReq(string msgs) {
-    this->msgs = str_to_vec(msgs);
+SendMsgMailReq::SendMsgMailReq(vector<string> msgs) {
+    type = SEND_MSG;
+    this->msgs = msgs;
 }
 
-void SendMsgMailReq::add_msg(string msg) {
-    this->msgs.push_back(msg);
+SendMsgMailReq::SendMsgMailReq(string msgs) {
+    type = SEND_MSG;
+    this->msgs = str_to_vec(msgs);
 }
 
 string SendMsgMailReq::get_header() {
@@ -98,7 +119,8 @@ string SendMsgMailReq::get_header() {
 }
 
 string SendMsgMailReq::get_body() {
-    return vec_to_str(this->msgs);  
+    string data = vec_to_str(this->msgs);
+    return CONTENT_OP + " " + to_string(data.length()) + "\n" + data;  
 }
 
 // recvmsg req
@@ -111,32 +133,34 @@ string RecvMsgReq::get_header() {
 }
 
 string RecvMsgReq::get_body() {
-    return this->username + "\n";
+    string data = username + "\n";
+    return CONTENT_OP + " " + to_string(data.length()) + "\n" + data;
 }
 
 // helper funcs
-BaseReq parse_req(string &http_content) {
-    int i = http_content.find("\n");
-    string header = http_content.substr(0, i);
-    string body = http_content.substr(i + 1);
+BaseReq *parse_req(string &http_content) {
+    int i1 = http_content.find("\n");
+    int i2 = http_content.substr(i1 + 1).find("\n");
+    string header = http_content.substr(0, i1);
+    string body = http_content.substr(i1 + 1).substr(i2 + 1);
     
-    int j = header.find(" ");
-    int k = header.substr(j + 1).find(" ");
-    string verb = header.substr(0, j);
-    string type = header.substr(j + 1, k);
+    int i3 = header.find(" ");
+    int i4 = header.substr(i3 + 1).find(" ");
+    string verb = header.substr(0, i3);
+    string type = header.substr(i3 + 1, i4);
 
     if (type == GET_CERT) {
-        return GetCertReq(body);
+        return new GetCertReq(body);
     } else if (type == CHANGE_PW) {
-        return ChangePWReq(body);
+        return new ChangePWReq(body);
     } else if (type == SEND_MSG) {
         if (verb == "GET") {
-            return SendMsgUsersReq(body);
+            return new SendMsgUsersReq(body);
         } else {
-            return SendMsgMailReq(body);
+            return new SendMsgMailReq(body);
         }
     } else if (type == RECV_MSG) {
-        return RecvMsgReq(body);
+        return new RecvMsgReq(body);
     } else {
         exit(1);
     }

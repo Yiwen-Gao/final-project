@@ -9,16 +9,11 @@ DEPS = conn.h priv.h
 LDFLAGS = -g
 LDLIBS = -lssl -lcrypto
 
-server: clean conn.o server-conn.o server.o
-	$(CC) $(LDFLAGS) conn.o server-conn.o server.o $(LDLIBS) -o server 
+# server: clean conn.o server-conn.o server.o
+# 	$(CC) $(LDFLAGS) conn.o server-conn.o server.o $(LDLIBS) -o server
 
-changepw: conn.o client-conn.o changepw.o
-	$(CC) $(LDFLAGS) conn.o server-conn.o server.o $(LDLIBS) -o changepw 
-	cp ./sendmsg ../../client
-
-sendmsg: conn.o client-conn.o sendmsg.o
-	$(CC) $(LDFLAGS) conn.o server-conn.o server.o $(LDLIBS) -o sendmsg 
-	cp ./sendmsg ../../client
+server: clean conn.o server-conn.o reqs.o resps.o utils.o server.o
+	$(CC) $(LDFLAGS) conn.o server-conn.o reqs.o resps.o utils.o server.o $(LDLIBS) -o server  
 
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)

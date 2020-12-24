@@ -114,7 +114,7 @@ void getcert(string username, string password, string csr) {
   }
 }
 
-void changepw(string username, string old_password, string new_password, vector<string> csr) {
+void changepw(string username, string old_password, string new_password, string csr) {
   char user[50];
   char old_pass[100];
   strncpy(user, username.c_str(), 50);
@@ -131,9 +131,9 @@ void changepw(string username, string old_password, string new_password, vector<
   }
   write(cpipe[1][1], "make", 4);
   write(cpipe[1][1], user, 50);
-  for(string line : csr){
-    write(cpipe[1][1], line.c_str(), line.size());
-  }
+  // for(string line : csr){
+  //   write(cpipe[1][1], line.c_str(), line.size());
+  // }
   write(cpipe[1][1], "getc", 4);
   write(cpipe[1][1], user, 50);
   char cert[8192];
@@ -142,12 +142,12 @@ void changepw(string username, string old_password, string new_password, vector<
   cout << c << endl;
 }
 
-void sendmsg() {
-
+void sendmsg(vector<string> usernames) {
+  cout << "[debug] server enter sendmsg" << endl;
 }
 
-void recvmsg() {
-
+void recvmsg(string username) {
+  cout << "[debug] server enter recvmsg" << endl;
 }
 
 int main(int argc, char **argv) {
@@ -162,14 +162,45 @@ int main(int argc, char **argv) {
     const char *SERVER_KEY = "../../server/certificates/ca/intermediate/private/localhost.key.pem"; // *(++argv);
     
     ServerConnection conn = ServerConnection(CA_CERT, SERVER_CERT, SERVER_KEY);
-    string temp = conn.recv();
-    REQ req = conn.parse_req(temp);
-    cout << "printing details" << endl;
-    cout << "user: " << req.user << endl;
-    cout << "pass: " << req.password << endl;
-    cout << "csr: " << endl << req.csr << endl;
-    getcert(req.user, req.password, req.csr);
-    cout << "au revoir" << endl;
+    // string temp = conn.recv();
+    // REQ req = conn.parse_req(temp);
+    // cout << "printing details" << endl;
+    // cout << "user: " << req.user << endl;
+    // cout << "pass: " << req.password << endl;
+    // cout << "csr: " << endl << req.csr << endl;
+    // getcert(req.user, req.password, req.csr);
+
+    while (true) {
+      conn.accept_client();
+      string http_content = conn.recv();
+      BaseReq *req = parse_req(http_content);
+      BaseResp resp;
+      if (req->type == GET_CERT) {
+        GetCertReq gc_req = dynamic_cast<GetCertReq&>(*req);
+        getcert(gc_req.username, gc_req.password, gc_req.csr);
+        resp = CertResp("dummycertcontent");
+      } else if (req->type == CHANGE_PW) {
+        ChangePWReq cp_req = dynamic_cast<ChangePWReq&>(*req);
+        changepw(cp_req.username, cp_req.old_password, cp_req.new_password, cp_req.csr);
+        resp = CertResp("dummycertcontent");
+      } else if (req->type == SEND_MSG) {
+        SendMsgUsersReq smu_req = dynamic_cast<SendMsgUsersReq&>(*req);
+        sendmsg(smu_req.usernames);
+        resp = MailCertResp("cert1\ncert2\ncert3");
+        cout << "[debug] " << resp.get_body() << endl;
+      } else if (req->type == RECV_MSG) {
+        RecvMsgReq rm_req = dynamic_cast<RecvMsgReq&>(*req);
+        recvmsg(rm_req.username);
+        resp = MailResp("addleness\nwhaledom,wamara,addleness\nhello world");
+      } else {
+        cerr << "./server: invalid http request" << endl;
+      }
+
+      cout << "[debug] sending: " << resp.get_http_content() << endl;
+      conn.send(resp.get_http_content());
+      conn.close_client();
+      delete req;
+    }
 }
 
 
