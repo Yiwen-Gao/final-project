@@ -32,7 +32,7 @@ string ServerConnection::get_common_name()
         }
         X509_free( client_cert );
     }
-    return to_ret;
+    return to_ret.substr(3);
 }
 
 void ServerConnection::set_sock() {
