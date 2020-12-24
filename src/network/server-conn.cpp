@@ -7,7 +7,6 @@ using namespace std;
 ServerConnection::ServerConnection(const char *ca_cert, const char *my_cert, const char *my_key) 
     : Connection(ca_cert, my_cert, my_key) {
     ServerConnection::set_sock();
-    Connection::set_bio();
 }
 
 void ServerConnection::set_sock() {
@@ -30,6 +29,9 @@ int ServerConnection::send_string(string to_send) {
 }
 
 int ServerConnection::accept_client() {
+    ssl = SSL_new(ctx);
+    Connection::set_bio();
+
     struct sockaddr_in sa_cli;
     uint len_cli = sizeof(sa_cli);
     this->client = accept(sock, (struct sockaddr *)&sa_cli, &len_cli);
@@ -45,6 +47,13 @@ int ServerConnection::accept_client() {
     } 
 
     return -1;
+}
+
+void ServerConnection::close_client() {
+    // BIO_free(sbio);
+    SSL_shutdown(ssl);
+    SSL_free(ssl);
+    close(client);
 }
 
 REQ ServerConnection::parse_req(string req)

@@ -14,18 +14,11 @@ Connection::Connection(const char *ca_cert, const char *my_cert, const char *my_
     meth = TLS_method(); 
 	ctx = SSL_CTX_new(meth);
     Connection::set_certs();
-    ssl = SSL_new(ctx);
 }
 
 Connection::~Connection() {
-    SSL_shutdown(ssl);
-    // second call is sent to peer
-    SSL_shutdown(ssl); 
-    SSL_CTX_free(ctx);
-    SSL_free(ssl);
-    BIO_free(sbio);
-
     close(sock);
+    SSL_CTX_free(ctx);
     EVP_cleanup();
 }
 
@@ -49,7 +42,7 @@ void Connection::set_certs() {
     }
 
     /* Set to require peer (client) certificate verification */
-    SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, NULL); // SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, verify_callback);
+    SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, NULL); // SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, verify_callback);
     /* Set the verification depth to 1 because client certificate has to be directly signed by CA */
     SSL_CTX_set_verify_depth(ctx, 1);
 }
@@ -81,12 +74,11 @@ string Connection::recv() {
         printf("%s", ibuf);
         msg += ibuf;
         if (msg.substr( msg.length() - 2 ) == "\n\n") {
-            cout << "finished recv" << endl;
-            return msg;
+            break;
         }
     }
 
-    return "";
+    return msg;
 }
 
 void Connection::send(string msg) {

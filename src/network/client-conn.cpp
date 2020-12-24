@@ -5,14 +5,18 @@ using namespace std;
 ClientConnection::ClientConnection(const char *ca_cert, const char *my_cert, const char *my_key) 
 	: Connection(ca_cert, my_cert, my_key) {
 	ClientConnection::set_sock();
-	Connection::set_bio();
-	ClientConnection::connect_server();
+}
+
+ClientConnection::~ClientConnection() {
+	// BIO_free(sbio);
+	SSL_shutdown(ssl);
+	SSL_free(ssl);
 }
 
 void ClientConnection::set_sock() {
     Connection::set_sock();
     
-    he = gethostbyname(HOST_NAME);
+    he = gethostbyname("localhost"); // gethostbyname(HOST_NAME);
 	memcpy(&sin.sin_addr, (struct in_addr *)he->h_addr, he->h_length);
 	if (connect(sock, (struct sockaddr *)&sin, sizeof sin) < 0) {
 		perror("connect");
@@ -21,8 +25,12 @@ void ClientConnection::set_sock() {
 }
 
 void ClientConnection::connect_server() {
+	ssl = SSL_new(ctx);
+	Connection::set_bio();
+
 	string s = "";
     err = SSL_connect(ssl);
+
 	if (SSL_connect(ssl) != 1) {
 		switch (SSL_get_error(ssl, err)) {
 			case SSL_ERROR_NONE: s="SSL_ERROR_NONE"; break;

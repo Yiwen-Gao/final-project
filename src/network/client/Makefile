@@ -30,7 +30,7 @@ sendmsg: conn.o client-conn.o utils.o reqs.o resps.o sendmsg.o
 	$(CC) $(LDFLAGS) conn.o client-conn.o utils.o reqs.o resps.o sendmsg.o $(LDLIBS) -o sendmsg 
 
 recvmsg: conn.o client-conn.o utils.o reqs.o resps.o recvmsg.o
-	$(CC) $(LDFLAGS) conn.o client-conn.o utils.o reqs.o resps.o recvmsg.o $(LDLIBS) -o recvmsg
+	$(CC) $(LDFLAGS) reqs.o resps.o conn.o client-conn.o utils.o recvmsg.o $(LDLIBS) -o recvmsg
 
 conn.o: ../conn.cpp
 	$(CC) $(CFLAGS) -c ../conn.cpp
