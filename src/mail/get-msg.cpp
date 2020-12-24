@@ -45,6 +45,11 @@ int main (int argc, char **argv)
 		memset(buffer, 0, 40);
 	}	
 	fclose(fp);
+	if (remove(new_mail_path.c_str()) != 0)
+	{
+		cerr << "Problem deleting mail" << endl;
+	}
+	
 	write(STDOUT_FILENO, &contentlength, sizeof(int));
 	cout << filecontents << endl;
 }
