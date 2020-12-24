@@ -303,7 +303,7 @@ static int mail_exec(void *fd){
         dup2(mpipe[0][1], STDOUT_FILENO);
         close(mpipe[0][1]);
         close(mpipe[1][0]);
-        execl("../mail/mail-out", "mail-out", user, mes.c_str(), (char*)0);
+        execl("../mail/get-mail", "get-mail", user, (char*)0);
       }
       else {
         waitpid(pi, &status, 0);
@@ -344,8 +344,8 @@ static int password_exec(void *fd){
       else if(pi == 0){
         //dup2(ppipe[0][1], STDOUT_FILENO);
         close(ppipe[0][1]);
-        return 0;
-        //execl("../passwords/verify-pw", "verify-pw", user, password, (char*)0);
+        //return 0;
+        execl("../passwords/verify-pw", "verify-pw", user, password, (char*)0);
         cout << errno << endl;
       }
       else {
