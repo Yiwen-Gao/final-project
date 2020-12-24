@@ -2,6 +2,22 @@
 #include "priv.h"
 #include <vector>
 #include <pwd.h>
+#include <sys/stat.h>
+#include <string>
+#include <filesystem>
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <regex>
+#include "mail_utils.h"
+namespace fs = std::filesystem;
+
+#define MAILBOX_NAME_MAX 255
+#define MAIL_FROM_MAX 12
+#define RCPT_TO_MAX 10
+
+const std::string mail_prefix = "../../server/mail/";
+
 
 using namespace std;
 
