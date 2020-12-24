@@ -40,7 +40,8 @@ void end(){
   exit(0);
 }
 void setup_spaces(){
-  int flags = CLONE_NEWPID | CLONE_NEWNET | CLONE_NEWUTS | CLONE_NEWUSER | CLONE_NEWNS |SIGCHLD;
+  //int flags = CLONE_NEWPID | CLONE_NEWNET | CLONE_NEWUTS | CLONE_NEWUSER | CLONE_NEWNS |SIGCHLD;
+  int flags = CLONE_NEWPID | CLONE_NEWNET | CLONE_NEWUTS | CLONE_NEWNS |SIGCHLD;
 
   pipe(mpipe[0]);
   pipe(mpipe[1]);
