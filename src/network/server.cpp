@@ -144,9 +144,12 @@ string changepw(string username, string old_password, string new_password, strin
 }
 
 void sendmsg(string user, vector<string> recips, ServerConnection conn) {
+  string header = user;
   for(string rec : recips){
+    header += ",";
+    header += rec;
     write(cpipe[1][1], "getc", 4);
-    write(cpipe[1][1], user.c_str(), user.size());
+    write(cpipe[1][1], user.c_str(), 50);
     char cert[8192];
     int l;
     read(cpipe[0][0], &l, sizeof(int));
@@ -154,9 +157,19 @@ void sendmsg(string user, vector<string> recips, ServerConnection conn) {
     string c(cert, l);
     conn.send_string(c);
   }
-  //string message;
-  //write(cpipe[1][1], "send", 4);
-  //write(cpipe[1][1], message.c_str(), message.size());
+  header += "\n";
+  vector<int> sizes;
+  vector<char *> messages = conn.get_sendmsg_messages(recips.size(), sizes);
+  int index = 0;
+  for(string rec : recips){
+    write(mpipe[1][1], "send", 4);
+    write(mpipe[1][1], user.c_str(), 50);
+    int curr_len = header.size() + sizes[index];
+    write(mpipe[1][1], &curr_len, sizeof(int));
+    write(mpipe[1][1], header.c_str(), header.size());
+    write(mpipe[1][1], messages[index], sizes[index]);
+    free(messages[index++]);
+  }
 }
 
 string recvmsg(string user) {
@@ -204,7 +217,7 @@ int main(int argc, char **argv) {
         GetCertReq gc_req = dynamic_cast<GetCertReq&>(*req);
         string cert = getcert(gc_req.username, gc_req.password, gc_req.csr);
         conn.send_string(cert);
-        resp = CertResp(cert);
+        //resp = CertResp(cert);
       } else if (req->type == CHANGE_PW) {
         ChangePWReq cp_req = dynamic_cast<ChangePWReq&>(*req);
         string cert = changepw(cp_req.username, cp_req.old_password, cp_req.new_password, cp_req.csr);
@@ -288,8 +301,8 @@ static int password_exec(void *fd){
       else if(pi == 0){
         //dup2(ppipe[0][1], STDOUT_FILENO);
         close(ppipe[0][1]);
-        return 0;
-        //execl("../passwords/verify-pw", "verify-pw", user, password, (char*)0);
+        //return 0;
+        execl("../passwords/verify-pw", "verify-pw", user, password, (char*)0);
         cout << errno << endl;
       }
       else {
