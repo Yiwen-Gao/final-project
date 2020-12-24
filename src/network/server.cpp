@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <regex>
 #include "mail_utils.h"
-namespace fs = std::filesystem;
+//namespace fs = std::filesystem;
 
 #define MAILBOX_NAME_MAX 255
 #define MAIL_FROM_MAX 12
@@ -307,8 +307,6 @@ static int mail_exec(void *fd){
       read(mpipe[1][0], &l, sizeof(int));
       char *message = (char*)malloc(l);
       read(mpipe[1][0], message, l);
-      string mes(message);
-      free(message);
       pid_t pi = fork();
       if(pi < 0){
         perror("fork failed");
@@ -316,7 +314,18 @@ static int mail_exec(void *fd){
       else if(pi==0){
         close(mpipe[0][1]);
         close(mpipe[1][0]);
-        
+        string mail_box = user;
+        if (!validMailboxChars(mail_box) || mail_box.length() > MAILBOX_NAME_MAX || !doesMailboxExist(mail_box)){
+          return 1;
+        }
+        string next_file_num = getNextNumber(mail_box);
+        string mail_path = newMailPath(mail_box, next_file_num);
+        FILE *mes = fopen(mail_path.c_str(), "w");
+        if(mes){
+          fwrite(message, 1, l, mes);
+        }
+        free(message);
+        fclose(mes);
       }
       else {
         int status;
@@ -324,6 +333,7 @@ static int mail_exec(void *fd){
         if(status){
           perror("failed to send mail");
         }
+        free(message);
       }
     }
     else if(!strncmp(instr, "recv", 4)){
@@ -759,14 +769,14 @@ Checks the current highest numbering of the messages in the mailbox
 and returns the next number.
 */
 
-std::string get_stem(const fs::path &p) { return (p.stem().string()); }
+std::string get_stem(const filesystem::path &p) { return (p.stem().string()); }
 std::string getCurrNumber(const std::string &mailbox_name)
 {
     std::string mailbox_path = mail_prefix + mailbox_name;
     std::vector<std::string> files;
 
     // Iterate over the directory
-    for(const auto & entry : fs::directory_iterator(mailbox_path))
+    for(const auto & entry : filesystem::directory_iterator(mailbox_path))
     {
         try
         {
@@ -830,7 +840,7 @@ std::string getNextNumber(const std::string &mailbox_name)
     std::vector<std::string> files;
 
     // Iterate over the directory
-    for(const auto & entry : fs::directory_iterator(mailbox_path))
+    for(const auto & entry : filesystem::directory_iterator(mailbox_path))
     {
         try
         {
