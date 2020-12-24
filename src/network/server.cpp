@@ -34,11 +34,14 @@ void setup_spaces(){
   close(mpipe[0][1]);
   close(mpipe[1][0]);
   string proc = "/proc/";
-  proc += to_string(mp);
+  proc += to_string(cp);
   proc += "/uid_map";
-  FILE* uid = fopen(proc.c_str(), "w");
-  char *line = "0 1042 1\n";
-  fwrite(line, 1, strlen(line), uid);
+  struct passwd *pw = getpwnam("mail-writer");
+  FIL *uid = fopen(proc.c_str(), "w");
+  string entry = "0 ";
+  entry += to_string((int)pw->pw_uid);
+  entry += " 1\n";
+  fwrite(entry.c_str(), 1, strlen(entry.c_str()), uid);
   fclose(uid);
 
   pipe(ppipe[0]);
@@ -49,7 +52,7 @@ void setup_spaces(){
   }
   close(ppipe[0][1]);
   close(ppipe[1][0]);
- /* proc = "/proc/";
+  /*proc = "/proc/";
   proc += pp;
   proc += "/uid_map";
   uid = fopen(proc.c_str(), "w");
@@ -255,13 +258,66 @@ static void prepare_mntns(char *rootfs)
 
 static int mail_exec(void *fd){
   //prepare_mntns("/mail/");
-  int **p = *((int ***)fd);
-  close(p[0][0]);
-  close(p[1][1]);
+  //int **p = *((int ***)fd);
+  close(mpipe[0][0]);
+  close(mpipe[1][1]);
   char instr[4];
-  while(read(p[1][0], instr, 4)){
-    // new process fork and exec to send message
+  while(rue){
+    if(read(mpipe[1][0], instr, 4)<= 0){
+      //perror("ppipe closed");
+      break;
+    }
+    if(!strncmp(instr, "send", 4){
+      char user[50];
+      read(mpipe[1][0], user, 50);
+      int l;
+      read(mpipe[1][0], &l, sizeof(int));
+      char *message = (char*)malloc(l);
+      read(mpipe[1][0], message, l);
+      string mes(message);
+      free(message);
+      pid_t pi = fork();
+      if(pi < 0){
+        perror("fork failed);
+      }
+      else if(pi==0){
+        close(mpipe[0][1]);
+        close(mpipe[1][0]);
+        execl("../mail/mail-out", "mail-out", user, mes.c_str(), (char*)0);
+      }
+      else {
+        waitpid(pi, &status, 0);
+        if(status){
+          perror("failed to send mail");
+        }
+      }
+    }
+    else if(!strncmp(instr, "recv, 4"){
+      char user[50];
+      read(mpipe[1][0], user, 50);
+      pid_t pi = fork();
+      if(pi < 0){
+        perror("fork failed);
+      }
+      else if(pi==0){
+        dup2(mpipe[0][1], STDOUT_FILENO);
+        close(mpipe[0][1]);
+        close(mpipe[1][0]);
+        execl("../mail/mail-out", "mail-out", user, mes.c_str(), (char*)0);
+      }
+      else {
+        waitpid(pi, &status, 0);
+        if(status){
+          perror("failed to get mail");
+        }
+      }
+    }
+    else {
+      break;
+    }
   }
+  close(mpipe[0][1]);
+  close(mpipe[1][0]);
 }
 
 static int password_exec(void *fd){
