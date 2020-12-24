@@ -34,10 +34,10 @@ void setup_spaces(){
   close(mpipe[0][1]);
   close(mpipe[1][0]);
   string proc = "/proc/";
-  proc += to_string(cp);
+  proc += to_string(mp);
   proc += "/uid_map";
   struct passwd *pw = getpwnam("mail-writer");
-  FIL *uid = fopen(proc.c_str(), "w");
+  FILE *uid = fopen(proc.c_str(), "w");
   string entry = "0 ";
   entry += to_string((int)pw->pw_uid);
   entry += " 1\n";
@@ -71,9 +71,9 @@ void setup_spaces(){
   proc = "/proc/";
   proc += to_string(cp);
   proc += "/uid_map";
-  struct passwd *pw = getpwnam("cert-writer");
+  pw = getpwnam("cert-writer");
   uid = fopen(proc.c_str(), "w");
-  string entry = "0 ";
+  entry = "0 ";
   entry += to_string((int)pw->pw_uid);
   entry += " 1\n";
   fwrite(entry.c_str(), 1, strlen(entry.c_str()), uid);
@@ -291,7 +291,7 @@ static int mail_exec(void *fd){
       free(message);
       pid_t pi = fork();
       if(pi < 0){
-        perror("fork failed);
+        perror("fork failed");
       }
       else if(pi==0){
         close(mpipe[0][1]);
@@ -311,7 +311,7 @@ static int mail_exec(void *fd){
       read(mpipe[1][0], user, 50);
       pid_t pi = fork();
       if(pi < 0){
-        perror("fork failed);
+        perror("fork failed");
       }
       else if(pi==0){
         dup2(mpipe[0][1], STDOUT_FILENO);
