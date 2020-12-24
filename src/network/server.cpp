@@ -307,8 +307,6 @@ static int mail_exec(void *fd){
       read(mpipe[1][0], &l, sizeof(int));
       char *message = (char*)malloc(l);
       read(mpipe[1][0], message, l);
-      string mes(message);
-      free(message);
       pid_t pi = fork();
       if(pi < 0){
         perror("fork failed");
@@ -316,7 +314,17 @@ static int mail_exec(void *fd){
       else if(pi==0){
         close(mpipe[0][1]);
         close(mpipe[1][0]);
-        
+        string mail_box = user;
+        if (!validMailboxChars(mailbox_name) || mailbox_name.length() > MAILBOX_NAME_MAX || !doesMailboxExist(mailbox_name)){
+          return 1;
+        }
+        string next_file_num = getNextNumber(mail_box);
+        string mail_path = newMailPath(mail_box, next_file_num);
+        int file = open(mail_path.c_str(), "w");
+        if(file){
+          write(file, message, l);
+        }
+        free(message);
       }
       else {
         int status;
@@ -324,6 +332,7 @@ static int mail_exec(void *fd){
         if(status){
           perror("failed to send mail");
         }
+        free(message);
       }
     }
     else if(!strncmp(instr, "recv", 4)){
