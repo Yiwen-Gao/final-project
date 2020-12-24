@@ -155,7 +155,7 @@ int main(int argc, char **argv) {
     //     perror("usage: ./server <ca_cert> <server_cert> <server_key>");
     //     exit(1);
     // }
-    setup_spaces();
+    // setup_spaces();
 
     const char *CA_CERT = "../../server/certificates/ca/certs/ca.cert.pem"; // *(++argv);
     const char *SERVER_CERT = "../../server/certificates/ca/intermediate/certs/localhost.cert.pem"; // *(++argv);

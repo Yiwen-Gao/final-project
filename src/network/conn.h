@@ -75,6 +75,13 @@ class ClientConnection : public Connection {
         void connect_server();
 };
 
+struct REQ {
+    std::string user;
+    std::string password;
+    std::string csr;
+    std::string type;
+};
+
 class ServerConnection : public Connection {
     int client;
     
@@ -83,6 +90,7 @@ class ServerConnection : public Connection {
         void set_sock();
         int accept_client();
         int send_string(std::string to_send);
+        REQ parse_req(std::string req);
 };
 
 // base req abstract class
