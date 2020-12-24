@@ -134,7 +134,7 @@ int main(int argc, char **argv) {
 	string csrContents = "";
 	char buffer[40];
 	memset(buffer, 0, 40);
-	while ((n = fread(buffer, 1, sizeof(buffer), fp)) > 0)
+	while ((n = fread(buffer, 1, sizeof(buffer) - 1, fp)) > 0)
 	{
 		contentlength += n;
 		csrContents += buffer;
