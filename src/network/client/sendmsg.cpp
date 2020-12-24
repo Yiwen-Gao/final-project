@@ -46,7 +46,26 @@ int main(int argc, char *argv[]) {
 	vector<string> msgs;
 	for (auto it = resp.certs.begin(); it != resp.certs.end(); ++it) {
 		string cert = *it;
-		// TODO encrypt msg
+		//write the certificate to a temporary output file called signer.pem
+		FILE *fp = fopen("signer.pem", "wb");
+		if (fp == NULL)
+		{
+			cerr << "Failed to open certificate file for writing" << endl;
+			return 1;
+		}
+		char buffer[128];
+		int n = 0;
+		while ((n = fread(buffer, 1, sizeof(buffer), fp)) > 0)
+		{
+			if (fwrite(buffer, sizeof(char), n, fp) < 0)
+			{
+				cerr << "writing to file failed" << endl;
+				return 1;
+			}
+
+		}
+		fclose(fp);		
+			
 		BIO *in = NULL, *out = NULL, *tbio = NULL;
 		X509 *rcert = NULL;
 		STACK_OF(X509) *recips = NULL;
@@ -60,7 +79,33 @@ int main(int argc, char *argv[]) {
 
 		tbio = BIO_new_file("signer.pem", "r");
 		if (!tbio)
-			//goto err;
+			goto err;
+		rcert = PEM_read_bio_X509(tbio, NULL, 0, NULL);
+		
+		if (!rcert)
+			goto err;
+
+		recips = sk_X509_new_null();
+
+		if (!recips || !sk_X509_push(recips, rcert))
+			goto err;
+
+		//TODO: delete temp file
+
+
+err:
+	if (ret) {
+		fprintf(stderr, "Error Encrypting Data\n");
+		ERR_print_errors_fp(stderr);	
+	}
+
+	CMS_ContentInfo_free(cms);
+	X509_free(rcert);
+	sk_X509_pop_free(recips, X509_free);
+	BIO_free(in);
+	BIO_free(out);
+	BIO_free(tbio);
+	return ret;
 
 
 		msgs.push_back(msg);
@@ -77,5 +122,6 @@ int main(int argc, char *argv[]) {
 	// conn.send(mail_req.get_http_content());
 
 	return 0;
+
 }
 
