@@ -28,12 +28,13 @@ GetCertReq::GetCertReq(string content) {
 
     while (getline(msg, line)) {
         if (num == 0) {
-            this->username = line;
+            username += line;
         } else if (num == 1) {
-            this->password = line;
-        } else if (num == 2) {
-            this->csr = line;
+            password += line;
+        } else {
+            csr += line;
         }
+        num++;
     }
 }
 
@@ -63,14 +64,15 @@ ChangePWReq::ChangePWReq(string content) {
 
     while (getline(msg, line)) {
         if (num == 0) {
-            this->username = line;
+            username += line;
         } else if (num == 1) {
-            this->old_password = line;
+            old_password += line;
         } else if (num == 2) {
-            this->new_password = line;
-        } else if (num == 3) {
-            this->csr = line;
+            new_password += line;
+        } else {
+            csr += line;
         }
+        num++;
     }
 }
 

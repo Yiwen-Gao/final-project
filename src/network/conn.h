@@ -151,9 +151,7 @@ struct RecvMsgReq : public BaseReq {
 
 struct BaseResp {
     std::string type;
-    std::string get_header() {
-        return "HTTP/1.0 200 OK";
-    }
+    virtual std::string get_header();
     virtual std::string get_body();
     std::string get_http_content() {
         return this->get_header() + "\n" + this->get_body() + "\n";

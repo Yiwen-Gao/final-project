@@ -1,7 +1,12 @@
 #include "conn.h"
 
 using namespace std;
+
 const string CONTENT_OP = "Content-Length:";
+
+string BaseResp::get_header() {
+    return "HTTP/1.0 200 OK";
+}
 
 string BaseResp::get_body() {
     return "";

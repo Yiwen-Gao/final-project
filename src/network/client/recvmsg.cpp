@@ -2,9 +2,9 @@
 
 using namespace std;
 
-const char *CA_CERT = "";
-const char *CLIENT_CERT = "";
-const char *CLIENT_KEY = "";
+const char *CA_CERT = "./trusted_certs/ca-chain.cert.pem";
+const char *CLIENT_CERT = "./dummy/cert.pem";
+const char *CLIENT_KEY = "./dummy/key.pem";
 
 int main(int argc, char *argv[]) {
 	if (argc != 2) {
