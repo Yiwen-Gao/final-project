@@ -8,7 +8,6 @@ ServerConnection::ServerConnection(const char *ca_cert, const char *my_cert, con
     : Connection(ca_cert, my_cert, my_key) {
     ServerConnection::set_sock();
     Connection::set_bio();
-    ServerConnection::accept_client();
 }
 
 void ServerConnection::set_sock() {

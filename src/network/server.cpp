@@ -164,6 +164,17 @@ int main(int argc, char **argv) {
     const char *SERVER_KEY = "../../server/certificates/ca/intermediate/private/localhost.key.pem"; // *(++argv);
     
     ServerConnection conn = ServerConnection(CA_CERT, SERVER_CERT, SERVER_KEY);
+    pid_t p = fork();
+    if(p < 0){
+      return -1;
+    }
+    else if(p){
+      int status;
+      waitpid(p, &status, 0);
+      return 0;
+    }
+    unshare(CLONE_NEWUSER | CLONE_NEWNS | CLONE_NEWPID);
+    conn.accept_client();
     string temp = conn.recv();
     REQ req = conn.parse_req(temp);
     cout << "printing details" << endl;
