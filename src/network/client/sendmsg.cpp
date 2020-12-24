@@ -60,7 +60,7 @@ int main(int argc, char *argv[]) {
 
 		tbio = BIO_new_file("signer.pem", "r");
 		if (!tbio)
-			goto err;
+			//goto err;
 
 
 		msgs.push_back(msg);
