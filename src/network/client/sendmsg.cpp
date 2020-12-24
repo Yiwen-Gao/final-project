@@ -10,6 +10,16 @@ const char *CA_CERT = "./trusted_certs/ca-chain.cert.pem";
 const char *CLIENT_CERT = "./dummy/cert.pem";
 const char *CLIENT_KEY = "./dummy/key.pem";
 
+string format_msgs(vector<string> msgs) {
+	string mail = "";
+	for (auto it = msgs.begin(); it != msgs.end(); ++it) {
+		string m = *it;
+		mail += to_string(m.length()) + "\n" + m + "\n";
+	}
+
+	return mail;
+}
+
 int main(int argc, char *argv[]) {
 	if (argc != 2) {
 		cerr << "sendmsg: missing input file" << endl;
@@ -36,8 +46,8 @@ int main(int argc, char *argv[]) {
 	ClientConnection conn = ClientConnection(CA_CERT, CLIENT_CERT, CLIENT_KEY);
 	conn.connect_server();
 	
-	SendMsgUsersReq users_req = SendMsgUsersReq(users);
-	conn.send(users_req.get_http_content());
+	SendMsgReq req = SendMsgReq(users);
+	conn.send(req.get_http_content());
 
 	string http_content = conn.recv();
 	string body = remove_headers(http_content);
@@ -71,8 +81,14 @@ int main(int argc, char *argv[]) {
 		STACK_OF(X509) *recips = NULL;
 		CMS_ContentInfo *cms = NULL;
 		int ret = 1;
-
-		int flags = CMS_STREAM;
+		// string cert = *it;
+		// // TODO encrypt msg
+		// BIO *in = NULL, *out = NULL, *tbio = NULL;
+		// X509 *rcert = NULL;
+		// STACK_OF(X509) *recips = NULL;
+		// CMS_ContentInfo *cms = NULL;
+		// int ret = 1;
+		// int flags = CMS_STREAM;
 		
 		OpenSSL_add_all_algorithms();
 		ERR_load_crypto_strings();
@@ -106,20 +122,19 @@ err:
 	BIO_free(out);
 	BIO_free(tbio);
 	return ret;
-
+		// OpenSSL_add_all_algorithms();
+		// ERR_load_crypto_strings();
+		// tbio = BIO_new_file("signer.pem", "r");
+		// if (!tbio) {
+		// 	//goto err;
+		// }
 
 		msgs.push_back(msg);
 	}
-	SendMsgMailReq mail_req = SendMsgMailReq(msgs);
-	conn.send(mail_req.get_http_content());
-	// vector<string> msgs;
-	// for (auto it = resp.certs.begin(); it != resp.certs.end(); ++it) {
-	// 	string cert = *it;
-	// 	// TODO encrypt msg
-	// 	msgs.push_back(msg);
-	// }
-	// SendMsgMailReq mail_req = SendMsgMailReq(msgs);
-	// conn.send(mail_req.get_http_content());
+
+	string mail = format_msgs(msgs);
+	conn.send(mail);
+	conn.recv();
 
 	return 0;
 
