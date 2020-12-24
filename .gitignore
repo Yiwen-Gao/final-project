@@ -60,3 +60,6 @@ __pycache__/
 
 # Project Specific Files and Folders
 .vscode/
+
+# openssl stuff
+*.pem
