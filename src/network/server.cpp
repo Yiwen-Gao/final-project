@@ -2,6 +2,7 @@
 #include "priv.h"
 #include <vector>
 #include <pwd.h>
+#include <fstream>
 
 using namespace std;
 
@@ -227,12 +228,12 @@ int main(int argc, char **argv) {
         resp = new CertResp(cert);
       } else if (req->type == SEND_MSG) {
         SendMsgReq smu_req = dynamic_cast<SendMsgReq&>(*req);
-        // sendmsg(smu_req.usernames);
-        resp = new MailCertResp("cert1\ncert2\ncert3");
+        sendmsg(conn.get_common_name(), smu_req.usernames, conn);
+        //resp = new MailCertResp("cert1\ncert2\ncert3");
         // TODO remove
-        conn.send(resp->get_http_content());
-        string msg = conn.recv();
-        conn.send("OK");
+        //conn.send(resp->get_http_content());
+        //string msg = conn.recv();
+        //conn.send("OK");
       } else if (req->type == RECV_MSG) {
         RecvMsgReq rm_req = dynamic_cast<RecvMsgReq&>(*req);
         // string msg = recvmsg(rm_req.username);
@@ -447,23 +448,28 @@ static int ca_exec(void *fd){
       read(cpipe[1][0], user, 50);
       int status;
       
-      pid_t d =fork();
-      if(d < 0){
-        perror("fork failed");
+      cout << "HERE!" << endl;
+      string index_txt = "", line;
+      ifstream ifs ("../../server/certificates/ca/intermediate/index.txt", ifstream::in);
+      string to_find = "CN=";
+      to_find += user;
+      while (getline(ifs, line))
+      {
+            if (line.empty())
+            {
+                index_txt += "\n";
+            }
+            else if(line.find(to_find) == string::npos)
+            {
+                index_txt += line + "\n";
+            }
       }
-      else if (d == 0){
-        string ag = "/CN=";
-        ag += user;
-        ag += "/d";
-        execl("/bin/sed", "/bin/sed", "-i", ag.c_str(), "../../server/certificates/ca/intermediate/index.txt", NULL);
-      }
-      else {
-        waitpid(d, &status, 0);
-        if(status){
-          perror("failed to make certificate");
-        }
-      }
-      
+      ifs.close();
+      cout << "THERE" << endl;
+      ofstream ofs ("../../server/certificates/ca/intermediate/index.txt", ofstream::out);
+      ofs << index_txt;
+      ofs.close();
+      cout << "EVERYWHERE!" << endl;
       
       pid_t pi = fork();
       if(pi < 0){
@@ -477,7 +483,9 @@ static int ca_exec(void *fd){
         string location = "../../server/certificates/ca/intermediate/";
         string name = location + "csr/" + user;
         name += ".csr.pem";
+        cout << name << endl;
         FILE *csr = fopen(name.c_str(), "w");
+        cout << errno << endl;
         fwrite(req, 1, length, csr);
         fclose(csr);
 
