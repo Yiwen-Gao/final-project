@@ -7,9 +7,8 @@
 using namespace std;
 
 const char *CA_CERT = "./trusted_certs/ca-chain.cert.pem";
-const char *CLIENT_CERT = "../../../server/certificates/ca/intermediate/certs/localhost.cert.pem";
-const char *CLIENT_KEY = "../../../server/certificates/ca/intermediate/private/localhost.key.pem";
-const string SEND_MSG_HEADER = "POST sendmsg HTTP/1.0\n"; 
+const char *CLIENT_CERT = "./dummy/cert.pem";
+const char *CLIENT_KEY = "./dummy/key.pem";
 
 int main(int argc, char *argv[]) {
 	if (argc != 2) {
@@ -17,10 +16,22 @@ int main(int argc, char *argv[]) {
 		exit(1);
 	}
 
-	// TODO read from file
+	cout << "separate users by newlines; separate users from message by two newlines; terminate msg with a period and a newline" << endl;
 	string username = argv[1];
-	vector<string> users = vector<string> {"wamara", "whaledom", "addleness"}; 
-	string msg = "hello friends:)";
+	vector<string> users;
+	string line, msg;
+	bool is_recpts = true;
+	while (getline(cin, line)) {
+		if (line == ".") {
+			break;
+		} else if (is_recpts && line == "") {
+			is_recpts = false;
+		} else if (is_recpts) {
+			users.push_back(line);
+		} else {
+			msg += line + "\n";
+		}
+	}
 
 	ClientConnection conn = ClientConnection(CA_CERT, CLIENT_CERT, CLIENT_KEY);
 	conn.connect_server();
@@ -29,7 +40,8 @@ int main(int argc, char *argv[]) {
 	conn.send(users_req.get_http_content());
 
 	string http_content = conn.recv();
-	MailCertResp resp = MailCertResp(http_content);
+	string body = remove_headers(http_content);
+	MailCertResp resp = MailCertResp(body);
 	
 	vector<string> msgs;
 	for (auto it = resp.certs.begin(); it != resp.certs.end(); ++it) {
@@ -55,6 +67,14 @@ int main(int argc, char *argv[]) {
 	}
 	SendMsgMailReq mail_req = SendMsgMailReq(msgs);
 	conn.send(mail_req.get_http_content());
+	// vector<string> msgs;
+	// for (auto it = resp.certs.begin(); it != resp.certs.end(); ++it) {
+	// 	string cert = *it;
+	// 	// TODO encrypt msg
+	// 	msgs.push_back(msg);
+	// }
+	// SendMsgMailReq mail_req = SendMsgMailReq(msgs);
+	// conn.send(mail_req.get_http_content());
 
 	return 0;
 }

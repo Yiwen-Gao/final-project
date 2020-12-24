@@ -68,7 +68,6 @@ void setup_spaces(){
   proc = "/proc/";
   proc += to_string(cp);
   proc += "/uid_map";
-  cout << proc << endl;
   struct passwd *pw = getpwnam("cert-writer");
   uid = fopen(proc.c_str(), "w");
   string entry = "0 ";
@@ -85,11 +84,9 @@ string getcert(string username, string password, string csr) {
   char pass[100];
   strncpy(user, username.c_str(), 50);
   strncpy(pass, password.c_str(), 100);
-  cout << "about to write" << endl;
   write(ppipe[1][1], "verp", 4);
   write(ppipe[1][1], user, 50);
   write(ppipe[1][1], pass, 100);
-  cout << "sent credentials" << endl;
   int result;
   read(ppipe[0][0], &result, sizeof(int));
   if(!result){
@@ -98,16 +95,13 @@ string getcert(string username, string password, string csr) {
     int l = csr.size();
     write(cpipe[1][1], &l, sizeof(int));
     write(cpipe[1][1], csr.c_str(), csr.size());
-    cout << "wrote to clone" << endl;
 
     write(cpipe[1][1], "getc", 4);
     write(cpipe[1][1], user, 50);
-    cout << "getting cert" << endl;
     char cert[8192];
     read(cpipe[0][0], &l, sizeof(int));
     read(cpipe[0][0], cert, l);
     string c(cert, l);
-    cout << c << endl;
     return c;
   }
   else{
@@ -134,16 +128,13 @@ string changepw(string username, string old_password, string new_password, strin
     int l = csr.size();
     write(cpipe[1][1], &l, sizeof(int));
     write(cpipe[1][1], csr.c_str(), csr.size());
-    cout << "wrote to clone" << endl;
 
     write(cpipe[1][1], "getc", 4);
     write(cpipe[1][1], user, 50);
-    cout << "getting cert" << endl;
     char cert[8192];
     read(cpipe[0][0], &l, sizeof(int));
     read(cpipe[0][0], cert, l);
     string c(cert, l);
-    cout << c << endl;
     return c;
   }
   else{
@@ -205,35 +196,35 @@ int main(int argc, char **argv) {
     unshare(CLONE_NEWUSER | CLONE_NEWNS | CLONE_NEWPID);
     while (true) {
       conn.accept_client();
+      cout << "LOOK AT ME IM A TWEE: " << conn.get_common_name() << endl;
       string http_content = conn.recv();
       BaseReq *req = parse_req(http_content);
-      BaseResp resp;
+      BaseResp *resp;
       if (req->type == GET_CERT) {
         GetCertReq gc_req = dynamic_cast<GetCertReq&>(*req);
         string cert = getcert(gc_req.username, gc_req.password, gc_req.csr);
-        conn.send(cert);
+        conn.send_string(cert);
         resp = CertResp(cert);
       } else if (req->type == CHANGE_PW) {
         ChangePWReq cp_req = dynamic_cast<ChangePWReq&>(*req);
         string cert = changepw(cp_req.username, cp_req.old_password, cp_req.new_password, cp_req.csr);
-        resp = CertResp(cert);
+        resp = new CertResp(cert);
       } else if (req->type == SEND_MSG) {
         SendMsgUsersReq smu_req = dynamic_cast<SendMsgUsersReq&>(*req);
         // sendmsg(smu_req.usernames);
-        resp = MailCertResp("cert1\ncert2\ncert3");
-        cout << "[debug] " << resp.get_body() << endl;
+        resp = new MailCertResp("cert1\ncert2\ncert3");
       } else if (req->type == RECV_MSG) {
         RecvMsgReq rm_req = dynamic_cast<RecvMsgReq&>(*req);
         // string msg = recvmsg(rm_req.username);
-        resp = MailResp("addleness\nwhaledom,wamara\nhello!!!\n");
+        resp = new MailResp("addleness\nwhaledom,wamara\n\nhello!!!\n");
       } else {
         cerr << "./server: invalid http request" << endl;
       }
 
-      cout << "[debug] sending: " << resp.get_http_content() << endl;
-      //conn.send(resp.get_http_content());
+      //conn.send(resp->get_http_content());
       conn.close_client();
       delete req;
+      delete resp;
     }
 }
 
@@ -280,13 +271,10 @@ static int password_exec(void *fd){
   close(ppipe[1][1]);
   char instr[4];
   while(true){
-    cout << "starting loop" << endl;
     if(read(ppipe[1][0], instr, 4)<= 0){
-      cout << ppipe[1][0] << endl;
       perror("ppipe closed");
       break;
     }
-    cout << "read" << endl;
     if(!strncmp(instr, "verp", 4)){
       char user[50];
       read(ppipe[1][0], user, 50);
@@ -299,11 +287,9 @@ static int password_exec(void *fd){
       }
       else if(pi == 0){
         //dup2(ppipe[0][1], STDOUT_FILENO);
-        cout << "child starting" << endl;
         close(ppipe[0][1]);
-        cout << "child happening" << endl;
-        //return 0;
-        execl("../passwords/verify-pw", "verify-pw", user, password, (char*)0);
+        return 0;
+        //execl("../passwords/verify-pw", "verify-pw", user, password, (char*)0);
         cout << errno << endl;
       }
       else {
@@ -340,7 +326,6 @@ static int password_exec(void *fd){
       }
     }
     else {
-      cout << "breaking" << endl;
       break;
     }
   }
@@ -351,7 +336,6 @@ static int password_exec(void *fd){
 static int ca_exec(void *fd){
   //prepare_mntns("../../server/certificates/");
   //int **p = *((int ***)fd);
-  cout << "now in ca_exec" << endl;
   close(cpipe[0][0]);
   close(cpipe[1][1]);
   setuid(0);
@@ -387,6 +371,25 @@ static int ca_exec(void *fd){
       char user[50];
       read(cpipe[1][0], user, 50);
       int status;
+      
+      pid_t d =fork();
+      if(d < 0){
+        perror("fork failed");
+      }
+      else if (d == 0){
+        string ag = "/CN=";
+        ag += user;
+        ag += "/d";
+        execl("/bin/sed", "/bin/sed", "-i", ag.c_str(), "../../server/certificates/ca/intermediate/index.txt", NULL);
+      }
+      else {
+        waitpid(d, &status, 0);
+        if(status){
+          perror("failed to make certificate");
+        }
+      }
+      
+      
       pid_t pi = fork();
       if(pi < 0){
         perror("fork failed");
@@ -399,17 +402,14 @@ static int ca_exec(void *fd){
         string location = "../../server/certificates/ca/intermediate/";
         string name = location + "csr/" + user;
         name += ".csr.pem";
-        cout << name.c_str() << endl;
         FILE *csr = fopen(name.c_str(), "w");
-        cout << fwrite(req, 1, length, csr) << endl;
+        fwrite(req, 1, length, csr);
         fclose(csr);
 
         csr = fopen(name.c_str(), "r");
         fread(req, 1, length, csr);
-        cout << req << endl;
         free(req);
         fclose(csr);
-        cout << getuid() << endl;
         execl("../../server/certificates/signcsr.sh", "signcsr.sh", location.c_str(), user, (char*)0);
       }
       else{

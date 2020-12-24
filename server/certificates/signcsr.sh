@@ -27,7 +27,8 @@ fi
 openssl ca -config $1openssl.cnf \
 		   -extensions v3_intermediate_ca -days 375 -notext -md sha256 \
 		   -in $1csr/$2.csr.pem \
-	  	   -out $1certs/$2.cert.pem
+	  	   -out $1certs/$2.cert.pem \
+		   -passin pass:password123
 
 chmod 640 $1certs/$2.cert.pem
 
