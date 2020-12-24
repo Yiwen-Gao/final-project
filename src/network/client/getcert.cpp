@@ -223,7 +223,7 @@ int main(int argc, char **argv) {
 	SSL_write(ssl, obuf, strlen(obuf));
 
 	//open a file descriptor for writing the certificate to the certificates file
-	string certificateFile = "./certificates/" + username + ".cert";
+	string certificateFile = "./certificates/" + username + ".cert.pem";
 
 	FILE *certfp = fopen(certificateFile.c_str(), "wb");
 	if (certfp == NULL)
