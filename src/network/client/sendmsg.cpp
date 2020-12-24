@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	ClientConnection conn = ClientConnection(CA_CERT, CLIENT_CERT, CLIENT_KEY);
+	/*ClientConnection conn = ClientConnection(CA_CERT, CLIENT_CERT, CLIENT_KEY);
 	conn.connect_server();
 	
 	SendMsgReq req = SendMsgReq(users);
@@ -55,9 +55,9 @@ int main(int argc, char *argv[]) {
 	
 	vector<string> msgs;
 	for (auto it = resp.certs.begin(); it != resp.certs.end(); ++it) {
-		string cert = *it;
+		string cert = *it;*/
 		//write the certificate to a temporary output file called signer.pem
-		FILE *fp = fopen("signer.pem", "wb");
+		/*FILE *fp = fopen("signer.pem", "wb");
 		if (fp == NULL)
 		{
 			cerr << "Failed to open certificate file for writing" << endl;
@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
 			return 1;
 		}
 
-		fclose(fp);		
+		fclose(fp);*/		
 		
 		//create temporary file containing the message to be encrypted
 		FILE *encfp = fopen("encr.txt", "wb");
@@ -129,8 +129,8 @@ int main(int argc, char *argv[]) {
 		
 		ret = 0;		
 
-		//TODO: delete temp file
-		if (remove("encr.txt") != 0)
+		//move these to the very end.
+		/*if (remove("encr.txt") != 0)
 		{
 			cerr << "Problem removing temp file" << endl;
 		}
@@ -138,7 +138,7 @@ int main(int argc, char *argv[]) {
 		if (remove("signer.pem") != 0)
 		{
 			cerr << "Problem removing temp file" << endl;
-		}
+		}*/
 
 err:
 		if (ret) {
@@ -152,19 +152,23 @@ err:
 		BIO_free(in);
 		BIO_free(out);
 		BIO_free(tbio);
-		// OpenSSL_add_all_algorithms();
-		// ERR_load_crypto_strings();
-		// tbio = BIO_new_file("signer.pem", "r");
-		// if (!tbio) {
-		// 	//goto err;
-		// }
 
-		msgs.push_back(msg);
+		/*BIO *ins = NULL, *outs = NULL, *tbios = NULL;
+		X509 *scert = NULL;
+		EVP_PKEY *skey = NULL;
+		CMS_ContentInfo *scms = NULL;
+		int sret = 1;
+
+		int flagss = CMS_DETACHED | CMS_STREAM;
+		tbios = BIO_new_file("*/
+
+		//set msg = to the encrypted text read from the file
+	/*	msgs.push_back(msg);
 	}
 
 	string mail = format_msgs(msgs);
 	conn.send(mail);
-	conn.recv();
+	conn.recv();*/
 
 	return 0;
 
