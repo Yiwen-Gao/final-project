@@ -11,7 +11,7 @@
 #include <algorithm>
 #include <regex>
 #include "../mail/mail_utils.h"
-//namespace fs = std::filesystem;
+namespace fs = std::filesystem;
 
 #define MAILBOX_NAME_MAX 255
 #define MAIL_FROM_MAX 12

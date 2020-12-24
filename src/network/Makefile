@@ -3,11 +3,11 @@ CXX = g++
 
 INCLUDES =
 CFLAGS = -g -Wall $(INCLUDES)
-CXXFLAGS = -g -Wall $(INCLUDES)
+CXXFLAGS = -g -Wall -std=c++17 $(INCLUDES)
 DEPS = conn.h priv.h
 
 LDFLAGS = -g
-LDLIBS = -lssl -lcrypto
+LDLIBS = -lssl -lcrypto -lstdc++fs
 
 # server: clean conn.o server-conn.o server.o
 # 	$(CC) $(LDFLAGS) conn.o server-conn.o server.o $(LDLIBS) -o server
