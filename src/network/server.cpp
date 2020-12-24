@@ -211,6 +211,7 @@ int main(int argc, char **argv) {
       if (req->type == GET_CERT) {
         GetCertReq gc_req = dynamic_cast<GetCertReq&>(*req);
         string cert = getcert(gc_req.username, gc_req.password, gc_req.csr);
+        conn.send(cert);
         resp = CertResp(cert);
       } else if (req->type == CHANGE_PW) {
         ChangePWReq cp_req = dynamic_cast<ChangePWReq&>(*req);
@@ -230,7 +231,7 @@ int main(int argc, char **argv) {
       }
 
       cout << "[debug] sending: " << resp.get_http_content() << endl;
-      conn.send(resp.get_http_content());
+      //conn.send(resp.get_http_content());
       conn.close_client();
       delete req;
     }
@@ -301,6 +302,7 @@ static int password_exec(void *fd){
         cout << "child starting" << endl;
         close(ppipe[0][1]);
         cout << "child happening" << endl;
+        //return 0;
         execl("../passwords/verify-pw", "verify-pw", user, password, (char*)0);
         cout << errno << endl;
       }
