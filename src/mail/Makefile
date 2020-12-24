@@ -1,8 +1,14 @@
+get-msg: get-msg.o mail_utils.o
+	g++ -std=c++17 get-msg.o mail_utils.o -lstdc++fs -o get-msg
+
 mail-in: mail-in.o mail_utils.o mail-out
 	g++ -std=c++17 mail-in.o mail_utils.o -lstdc++fs -o mail-in
 
 mail-out: mail-out.o mail_utils.o
 	g++ -std=c++17 mail-out.o mail_utils.o -lstdc++fs -o mail-out
+
+get-msg.o: get-msg.cpp
+	g++ -std=c++17 -c get-msg.cpp
 
 mail-in.o: mail-in.cpp
 	g++ -std=c++17 -c mail-in.cpp
@@ -15,7 +21,7 @@ mail_utils.o: mail_utils.cpp
 
 .PHONY: clean
 clean:
-	rm *.o mail-in mail-out
+	rm *.o mail-in mail-out get-msg
 
 .PHONY: mailclean
 mailclean:
@@ -23,5 +29,5 @@ mailclean:
 	rm $(TREE)/bin/mail-out
 
 .PHONY: install
-install: mail-in mail-out
-	cp mail-in mail-out $(TREE)/bin
+install: mail-in mail-out get-msg
+	cp mail-in mail-out get-msg $(TREE)/bin
