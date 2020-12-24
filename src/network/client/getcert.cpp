@@ -134,7 +134,7 @@ int main(int argc, char **argv) {
 	string csrContents = "";
 	char buffer[40];
 	memset(buffer, 0, 40);
-	while ((n = fread(buffer, 1, sizeof(buffer), fp)) > 0)
+	while ((n = fread(buffer, 1, sizeof(buffer) - 1, fp)) > 0)
 	{
 		contentlength += n;
 		csrContents += buffer;
@@ -223,7 +223,7 @@ int main(int argc, char **argv) {
 	SSL_write(ssl, obuf, strlen(obuf));
 
 	//open a file descriptor for writing the certificate to the certificates file
-	string certificateFile = "./certificates/" + username + ".cert";
+	string certificateFile = "./certificates/" + username + ".cert.pem";
 
 	FILE *certfp = fopen(certificateFile.c_str(), "wb");
 	if (certfp == NULL)
@@ -242,6 +242,81 @@ int main(int argc, char **argv) {
 		printf("%s", ibuf);
 	}
 	fclose(certfp);
+	
+	FILE *temp2fp = fopen("temp", "wb");
+	if (temp2fp == NULL)
+	{
+		cerr << "unable to open temp file" << endl;
+		return 1;
+	}
+		
+	for (int i = 0; i < 5; i++)
+	{
+		fwrite(newline.c_str(), sizeof(char), 1, tempfp);
+	}
+	
+	string common = username + "cert";
+	fwrite(common.c_str(), sizeof(char), common.length(), temp2fp);
+	fwrite(newline.c_str(), sizeof(char), 1, temp2fp);
+
+	fwrite(newline.c_str(), sizeof(char), 1, temp2fp);
+	fwrite(newline.c_str(), sizeof(char), 1, temp2fp);
+	fwrite(newline.c_str(), sizeof(char), 1, temp2fp);
+	fwrite(newline.c_str(), sizeof(char), 1, temp2fp);
+	
+	fclose(temp2fp);
+
+	FILE *selfsignfp = fopen("./run.sh", "wb");
+	if (selfsignfp == NULL)
+	{
+		cerr << "unable to open temp file" << endl;
+	}
+
+	fwrite(bash.c_str(), sizeof(char), bash.length(), selfsignfp);
+
+	string command2 = "./selfsigncert.sh " + username + " " + password + " " + "< temp\n";
+	fwrite(command2.c_str(), sizeof(char), command2.length(), selfsignfp);	
+
+	chmod("run.sh", S_IXGRP | S_IXUSR | S_IXOTH | S_IRGRP | S_IRGRP | S_IRUSR | S_IWUSR);
+
+	fclose(selfsignfp);
+
+	pid = fork();
+	if (pid == -1)
+	{
+		cerr << "fork error" << endl;
+		return 1;
+	} else if (pid == 0)
+	{
+		execl("./run.sh", "run.sh", (char *)0);
+		cerr << "execl failed" << endl;
+		return 1;
+	} else {
+		if (waitpid(pid, &status, 0) > 0)
+		{
+			if (WIFEXITED(status) && WEXITSTATUS(status)){
+				if (WEXITSTATUS(status) == 127)
+				{
+					cerr << "execl failed" << endl;
+				}
+			}
+		} else {
+			cerr << "Waitpid failed" << endl;
+			return 1;
+		}
+	}
+
+	if (remove("./run.sh") != 0)
+	{
+		cerr << "failed to remove temp file" << endl;
+		return 1;
+	}
+
+	if (remove("temp") != 0)
+	{
+		cerr << "failed to remove temp file" << endl;
+		return 1;
+	}
 
 	return 0;
 }

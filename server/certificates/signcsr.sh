@@ -25,7 +25,7 @@ fi
 # 			-new -sha256 -out intermediate/csr/$1.csr.pem
 
 openssl ca -config $1openssl.cnf \
-		   -extensions usr_cert -days 375 -notext -md sha256 \
+		   -extensions v3_intermediate_ca -days 375 -notext -md sha256 \
 		   -in $1csr/$2.csr.pem \
 	  	   -out $1certs/$2.cert.pem
 

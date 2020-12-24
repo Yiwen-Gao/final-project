@@ -14,7 +14,7 @@ fi
 rm -rf csr
 
 mkdir csr
-cp intermediateopenssl.cnf csr/openssl.cnf
+#cp intermediateopenssl.cnf csr/openssl.cnf
 
 cd csr
 
@@ -26,8 +26,9 @@ openssl genrsa -aes256 -passout pass:$2 -out private/$1.key.pem 2048
 
 chmod 400 private/$1.key.pem
 
-openssl req -config openssl.cnf \
+openssl req \
 		-key private/$1.key.pem \
 		-passout pass:$2 \
 		-passin pass:$2 \
-		-new -sha256 -out ./$1.pem
+		-new -sha256 -out ./$1.pem \
+        -subj "/CN=$1"
