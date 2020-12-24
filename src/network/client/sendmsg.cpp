@@ -153,14 +153,64 @@ err:
 		BIO_free(out);
 		BIO_free(tbio);
 
-		/*BIO *ins = NULL, *outs = NULL, *tbios = NULL;
+		BIO *ins = NULL, *outs = NULL, *tbios = NULL;
 		X509 *scert = NULL;
 		EVP_PKEY *skey = NULL;
 		CMS_ContentInfo *scms = NULL;
 		int sret = 1;
 
 		int flagss = CMS_DETACHED | CMS_STREAM;
-		tbios = BIO_new_file("*/
+		string signfilename = "./certificates/" + username + ".cert.pem";
+		tbios = BIO_new_file(signfilename.c_str(), "r");
+
+		if (!tbios)
+			goto err2;
+
+		scert = PEM_read_bio_X509(tbios, NULL, 0, NULL);
+
+		BIO_reset(tbios);
+		
+		skey = PEM_read_bio_PrivateKey(tbios, NULL, 0, NULL);
+
+		if (!scert || !skey)
+		{
+			goto err2;
+		}
+
+		ins = BIO_new_file("smencr.txt", "r");
+		if (!ins)
+		{
+			goto err2;
+		}
+
+		scms = CMS_sign(scert, skey, NULL, ins, flagss);
+		if (!scms)
+			goto err2;
+
+		outs = BIO_new_file("smout.txt", "w");
+
+		if (!outs)
+			goto err2;
+		
+		if (!(flags & CMS_STREAM))
+			BIO_reset(ins);
+
+		if (!SMIME_write_CMS(outs, scms, ins, flagss))
+			goto err2;
+	
+		sret = 0;
+err2:
+		if (sret) {
+			fprintf(stderr, "Error Signing Data\n");
+			ERR_print_errors_fp(stderr);
+		}
+
+		CMS_ContentInfo_free(scms);
+		X509_free(scert);
+		EVP_PKEY_free(skey);
+		BIO_free(ins);
+		BIO_free(outs);
+		BIO_free(tbios);
 
 		//set msg = to the encrypted text read from the file
 	/*	msgs.push_back(msg);
