@@ -242,8 +242,8 @@ int main(int argc, char **argv) {
         string cert = changepw(cp_req.username, cp_req.old_password, cp_req.new_password, cp_req.csr);
         resp = new CertResp(cert);
       } else if (req->type == SEND_MSG) {
-        SendMsgReq smu_req = dynamic_cast<SendMsgReq&>(*req);
-        // sendmsg(smu_req.usernames);
+        SendMsgReq sm_req = dynamic_cast<SendMsgReq&>(*req);
+        // sendmsg(sm_req.usernames);
         resp = new MailCertResp("cert1\ncert2\ncert3");
         // TODO remove
         conn.send(resp->get_http_content());
