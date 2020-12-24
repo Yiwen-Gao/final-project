@@ -2,6 +2,7 @@
 
 using namespace std;
 
+// TODO finish implementation
 CertResp::CertResp(string cert) {
     this->cert = cert;
 }
@@ -19,7 +20,6 @@ string MailCertResp::get_body() {
 }
 
 MailResp::MailResp(string content) {
-    // TODO finish implementation
     this->sender = "";
     this->receivers = vector<string>{content};
     this->msg = "";

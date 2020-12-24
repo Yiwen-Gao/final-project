@@ -31,6 +31,11 @@ extern "C" {
 #define INPUT_BUFFER_SIZE 512
 #define OUTPUT_BUFFER_SIZE 512
 
+#define GET_CERT "getcert"
+#define CHANGE_PW "changepw"
+#define SEND_MSG "sendmsg"
+#define RECV_MSG "recvmsg"
+
 /*********************** CLASS DECLARATIONS **********************/
 class Connection {
     protected:
@@ -70,13 +75,6 @@ class ClientConnection : public Connection {
         void connect_server();
 };
 
-struct REQ {
-    std::string user;
-    std::string password;
-    std::string csr;
-    std::string type;
-};
-
 class ServerConnection : public Connection {
     int client;
     
@@ -85,7 +83,112 @@ class ServerConnection : public Connection {
         void set_sock();
         int accept_client();
         int send_string(std::string to_send);
-        REQ parse_req(std::string msg);
 };
+
+// base req abstract class
+struct BaseReq {
+    std::string type;
+};
+
+struct GetCertReq : public BaseReq {
+    std::string username;
+    std::string password;
+    std::string csr;
+    GetCertReq(std::string username, std::string password, std::string csr);
+    GetCertReq(std::string content);
+    std::string get_header();
+    std::string get_body();
+    std::string get_http_content() {
+        return this->get_header() + this->get_body() + "\n";
+    }
+};
+
+struct ChangePWReq : public BaseReq {
+    std::string username;
+    std::string old_password;
+    std::string new_password;
+    std::string csr;
+    ChangePWReq(std::string username, std::string old_password, std::string new_password, std::string csr);
+    ChangePWReq(std::string content);
+    std::string get_header();
+    std::string get_body();
+    std::string get_http_content() {
+        return this->get_header() + this->get_body() + "\n";
+    }
+};
+
+struct SendMsgUsersReq : public BaseReq {
+    std::vector<std::string> usernames;
+    SendMsgUsersReq(std::vector<std::string> usernames);
+    SendMsgUsersReq(std::string usernames);
+    std::string get_header();
+    std::string get_body();
+    std::string get_http_content() {
+        return this->get_header() + this->get_body() + "\n";
+    }
+};
+
+struct SendMsgMailReq : public BaseReq {
+    std::vector<std::string> msgs;
+    SendMsgMailReq(std::string msgs);
+    void add_msg(std::string msg);
+    std::string get_header();
+    std::string get_body();
+    std::string get_http_content() {
+        return this->get_header() + this->get_body() + "\n";
+    }
+};
+
+struct RecvMsgReq : public BaseReq {
+    std::string username;
+    RecvMsgReq(std::string username);
+    std::string get_header();
+    std::string get_body();
+    std::string get_http_content() {
+        return this->get_header() + this->get_body() + "\n";
+    }
+};
+
+struct BaseResp {
+    std::string type;
+    std::string get_header() {
+        return "HTTP/1.0 200 OK\n";
+    }
+};
+
+struct CertResp : public BaseResp {
+    std::string cert;
+    CertResp(std::string cert);
+    std::string get_body();
+    std::string get_http_content() {
+        return this->get_header() + "\n" + this->get_body() + "\n";
+    }
+};
+
+struct MailCertResp : public BaseResp {
+    std::vector<std::string> certs;
+    MailCertResp(std::string content);
+    std::string get_body();
+    std::string get_http_content() {
+        return this->get_header() + "\n" + this->get_body() + "\n";
+    }
+};
+
+struct MailResp : public BaseResp {
+    std::string sender;
+    std::vector<std::string> receivers;
+    std::string msg;
+    MailResp(std::string content);
+    std::string get_body();
+    std::string get_http_content() {
+        return this->get_header() + "\n" + this->get_body() + "\n";
+    }
+};
+
+/*********************** FUNCTION DECLARATIONS **********************/
+BaseReq parse_req(std::string &http_content);
+
+std::string vec_to_str(std::vector<std::string> &vec);
+std::vector<std::string> str_to_vec(std::string &str);
 
 #endif

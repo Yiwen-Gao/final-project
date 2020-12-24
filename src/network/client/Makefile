@@ -12,11 +12,19 @@ LDLIBS = -lssl -lcrypto
 .PHONY: default
 default: getcert changepw sendmsg recvmsg
 
-getcert: conn.o client-conn.o utils.o reqs.o resps.o getcert.o
-	$(CC) $(LDFLAGS) conn.o client-conn.o utils.o reqs.o resps.o getcert.o $(LDLIBS) -o getcert 
+getcert: getcert.o
 
-changepw: conn.o client-conn.o utils.o reqs.o resps.o changepw.o
-	$(CC) $(LDFLAGS) conn.o client-conn.o utils.o reqs.o resps.o changepw.o $(LDLIBS) -o changepw 
+getcert.o: getcert.cpp
+
+changepw: changepw.o
+
+changepw.o: changepw.cpp
+
+# getcert: conn.o client-conn.o utils.o reqs.o resps.o getcert.o
+# 	$(CC) $(LDFLAGS) conn.o client-conn.o utils.o reqs.o resps.o getcert.o $(LDLIBS) -o getcert 
+
+# changepw: conn.o client-conn.o utils.o reqs.o resps.o changepw.o
+# 	$(CC) $(LDFLAGS) conn.o client-conn.o utils.o reqs.o resps.o changepw.o $(LDLIBS) -o changepw 
 
 sendmsg: conn.o client-conn.o utils.o reqs.o resps.o sendmsg.o
 	$(CC) $(LDFLAGS) conn.o client-conn.o utils.o reqs.o resps.o sendmsg.o $(LDLIBS) -o sendmsg 

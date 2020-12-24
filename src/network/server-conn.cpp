@@ -46,23 +46,4 @@ int ServerConnection::accept_client() {
     } 
 
     return -1;
-    // BIO_printf(bio_c_out, "Connection from %lx, port %x\n", sa_cli.sin_addr.s_addr, sa_cli.sin_port);
-}
-
-REQ ServerConnection::parse_req(string req)
-{
-    vector<int> lines;
-    int ind = -1;
-    REQ to_ret;
-    while((ind = req.find('\n', ind + 1)) != string::npos)
-    {
-        lines.push_back(ind);
-    }
-    if (lines.size() > 3)
-    {
-        to_ret.user = req.substr(lines[1] + 1, lines[2] - lines[1] - 1);
-        to_ret.password = req.substr(lines[2] + 1, lines[3] - lines[2] - 1);
-        to_ret.csr = req.substr(lines[3] + 1);
-    }
-    return to_ret;
 }
