@@ -49,7 +49,7 @@ void Connection::set_certs() {
     }
 
     /* Set to require peer (client) certificate verification */
-    SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, NULL); // SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, verify_callback);
+    SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, NULL); // SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, verify_callback);
     /* Set the verification depth to 1 because client certificate has to be directly signed by CA */
     SSL_CTX_set_verify_depth(ctx, 1);
 }

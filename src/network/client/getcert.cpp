@@ -18,6 +18,8 @@
 
 const int DEFAULT_PORT = 443;
 const std::string TRUSTED = "./trusted_certificates/";
+const char* DUMMY_CERT = "./dummy/cert.pem";
+const char* DUMMY_KEY = "./dummy/key.pem";
 
 using namespace std;
 
@@ -161,6 +163,13 @@ int main(int argc, char **argv) {
 
 	meth = TLS_client_method();
 	ctx = SSL_CTX_new(meth);
+    if (SSL_CTX_use_certificate_file(ctx, DUMMY_CERT, SSL_FILETYPE_PEM) <= 0) {
+        exit(1);
+    }
+
+    if (SSL_CTX_use_PrivateKey_file(ctx, DUMMY_KEY, SSL_FILETYPE_PEM) <= 0) {
+        exit(1);
+    }
 
 	if (!SSL_CTX_load_verify_locations(ctx, "./trusted_certs/ca-chain.cert.pem", NULL)) {
 		exit(1);
