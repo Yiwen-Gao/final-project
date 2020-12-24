@@ -275,12 +275,12 @@ static int mail_exec(void *fd){
   close(mpipe[0][0]);
   close(mpipe[1][1]);
   char instr[4];
-  while(rue){
+  while(true){
     if(read(mpipe[1][0], instr, 4)<= 0){
       //perror("ppipe closed");
       break;
     }
-    if(!strncmp(instr, "send", 4){
+    if(!strncmp(instr, "send", 4)){
       char user[50];
       read(mpipe[1][0], user, 50);
       int l;
@@ -299,13 +299,14 @@ static int mail_exec(void *fd){
         execl("../mail/mail-out", "mail-out", user, mes.c_str(), (char*)0);
       }
       else {
+        int status;
         waitpid(pi, &status, 0);
         if(status){
           perror("failed to send mail");
         }
       }
     }
-    else if(!strncmp(instr, "recv, 4"){
+    else if(!strncmp(instr, "recv", 4)){
       char user[50];
       read(mpipe[1][0], user, 50);
       pid_t pi = fork();
@@ -319,6 +320,7 @@ static int mail_exec(void *fd){
         execl("../mail/get-mail", "get-mail", user, (char*)0);
       }
       else {
+        int status;
         waitpid(pi, &status, 0);
         if(status){
           perror("failed to get mail");
