@@ -160,29 +160,30 @@ err:
 		int sret = 1;
 
 		int flagss = CMS_DETACHED | CMS_STREAM;
-		string signfilename = "./certificates/" + username + ".cert.pem";
+		string signfilename = "./creds.txt"; // string signfilename = "./certificates/" + username + ".cert.pem";
 		tbios = BIO_new_file(signfilename.c_str(), "r");
-
+		cout << "hello" << endl;
 		if (!tbios)
 			goto err2;
 
+		cout << "goodbye" << endl;
 		scert = PEM_read_bio_X509(tbios, NULL, 0, NULL);
 
 		BIO_reset(tbios);
 		
 		skey = PEM_read_bio_PrivateKey(tbios, NULL, 0, NULL);
-
+		cout << "here" << endl;
 		if (!scert || !skey)
 		{
 			goto err2;
 		}
-
+		cout << "here1" << endl;
 		ins = BIO_new_file("smencr.txt", "r");
 		if (!ins)
 		{
 			goto err2;
 		}
-
+		cout << "here2" << endl;
 		scms = CMS_sign(scert, skey, NULL, ins, flagss);
 		if (!scms)
 			goto err2;
