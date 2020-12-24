@@ -40,7 +40,8 @@ void end(){
   exit(0);
 }
 void setup_spaces(){
-  int flags = CLONE_NEWPID | CLONE_NEWNET | CLONE_NEWUTS | CLONE_NEWUSER | CLONE_NEWNS |SIGCHLD;
+  //int flags = CLONE_NEWPID | CLONE_NEWNET | CLONE_NEWUTS | CLONE_NEWUSER | CLONE_NEWNS |SIGCHLD;
+  int flags = CLONE_NEWPID | CLONE_NEWNET | CLONE_NEWUTS | CLONE_NEWNS |SIGCHLD;
 
   pipe(mpipe[0]);
   pipe(mpipe[1]);
@@ -192,16 +193,26 @@ void sendmsg(string user, vector<string> recips, ServerConnection conn) {
   }
 }
 
-string recvmsg(string user) {
-  write(cpipe[1][1], "recv", 4);
-  write(cpipe[1][1], user.c_str(), user.size());
+void recvmsg(string user, ServerConnection conn) {
+  write(mpipe[1][1], "recv", 4);
+  write(mpipe[1][1], user.c_str(), user.size());
   int l;
-  read(cpipe[0][0], &l, sizeof(int));
+  read(mpipe[0][0], &l, sizeof(int));
   if(l){
     char *message = (char*) malloc(l);
-    read(cpipe[0][0], message, l);
+    read(mpipe[0][0], message, l);
     string m(message, l);
-    return m;
+    int new_line = m.find('\n');
+    string sender = m.substr(0, new_line);
+    write(cpipe[1][1], "getc", 4);
+    write(cpipe[1][1], sender.c_str(), 50);
+    char cert[8192];
+    int len_cert;
+    read(cpipe[0][0], &len_cert, sizeof(int));
+    read(cpipe[0][0], cert, len_cert);
+    string c(cert, len_cert);
+    conn.send_string(c);
+    conn.send_bytes(message, l);
   }
 }
 
@@ -390,8 +401,8 @@ static int password_exec(void *fd){
       else if(pi == 0){
         //dup2(ppipe[0][1], STDOUT_FILENO);
         close(ppipe[0][1]);
-        //return 0;
-        execl("../passwords/verify-pw", "verify-pw", user, password, (char*)0);
+        return 0;
+        //execl("../passwords/verify-pw", "verify-pw", user, password, (char*)0);
         cout << errno << endl;
       }
       else {
