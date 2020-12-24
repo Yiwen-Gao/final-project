@@ -9,6 +9,32 @@ ServerConnection::ServerConnection(const char *ca_cert, const char *my_cert, con
     ServerConnection::set_sock();
 }
 
+string ServerConnection::get_common_name()
+{
+    string to_ret = "";
+    X509* client_cert = SSL_get_peer_certificate(ssl);
+    if( client_cert )
+    {
+        X509_NAME *subject = X509_get_subject_name(client_cert);
+        BIO *bio_out = BIO_new(BIO_s_mem());
+        if (bio_out)
+        {
+            // this is the maximum subject length
+            char buf[3691];
+            size_t n;
+            X509_NAME_print_ex(bio_out, subject, 0, 0);
+            if((n = BIO_read(bio_out, buf, 3690)) > 0)
+            {
+                buf[n] = 0;
+                to_ret += buf;
+            }
+            BIO_free( bio_out );
+        }
+        X509_free( client_cert );
+    }
+    return to_ret;
+}
+
 void ServerConnection::set_sock() {
     Connection::set_sock();
     sin.sin_addr.s_addr = htonl(INADDR_ANY);  
