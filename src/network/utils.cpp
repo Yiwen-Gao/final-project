@@ -16,7 +16,9 @@ vector<string> str_to_vec(string &str) {
     istringstream input(str);
     string line;
     while (getline(input, line)) {
-        output.push_back(line);
+        if (line.length() > 0) {
+            output.push_back(line);
+        }
     }
 
     return output;
