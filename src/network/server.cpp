@@ -146,6 +146,7 @@ string changepw(string username, string old_password, string new_password, strin
   write(ppipe[1][1], "setp", 4);
   write(ppipe[1][1], user, 50);
   write(ppipe[1][1], old_pass, 100);
+  write(ppipe[1][1], new_pass, 100);
   int result;
   read(ppipe[0][0], &result, sizeof(int));
   if(!result){
