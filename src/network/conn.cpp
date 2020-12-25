@@ -22,6 +22,16 @@ Connection::~Connection() {
     EVP_cleanup();
 }
 
+int Connection::send_string(string to_send) {
+    return SSL_write(ssl, to_send.c_str(), to_send.length());
+}
+
+int Connection::send_bytes(char *bytes, int num_bytes)
+{
+    return SSL_write(ssl, bytes, num_bytes);
+}
+
+
 void Connection::set_certs() {
     /* Load client/server certificate into the SSL context */
     if (SSL_CTX_use_certificate_file(ctx, my_cert, SSL_FILETYPE_PEM) <= 0) {

@@ -209,7 +209,6 @@ int sendmsg(string user, vector<string> recips, ServerConnection conn) {
     read(cpipe[0][0], cert, l);
     string c(cert, l);
     conn.send_string(c);
-    cout << "sent cert" << endl;
   }
   conn.send_string("\n");
   header += "\n";
@@ -217,7 +216,6 @@ int sendmsg(string user, vector<string> recips, ServerConnection conn) {
   vector<char *> messages = conn.get_sendmsg_messages(recips.size(), sizes);
   int index = 0;
   for(string rec : recips){
-    cout << "sending msg to " << rec << endl;
     write(mpipe[1][1], "send", 4);
     write(mpipe[1][1], rec.c_str(), 50);
     int curr_len = header.size() + sizes[index];
@@ -226,7 +224,6 @@ int sendmsg(string user, vector<string> recips, ServerConnection conn) {
     write(mpipe[1][1], messages[index], sizes[index]);
     free(messages[index++]);
   }
-  cout << "finished sendmsg" << endl;
   return 0;
 }
 
@@ -311,12 +308,10 @@ int main(int argc, char **argv) {
     cout << received << endl << endl;
     cout << cert << endl;*/
     while (true) {
+      cout << "is this happening? it shouldn't be" << endl;
       conn.accept_client();
-      cout << "LOOK AT ME IM A TWEE: " << conn.get_common_name() << endl;
       string http_content = conn.recv();
-      cout << "do we get here?" << endl;
       BaseReq *req = parse_req(http_content);
-      cout << "how about here" << endl;
       BaseResp *resp;
       if (req->type == GET_CERT) {
         GetCertReq gc_req = dynamic_cast<GetCertReq&>(*req);
@@ -344,10 +339,13 @@ int main(int argc, char **argv) {
       } else {
         cerr << "./server: invalid http request" << endl;
       }
+      cout << "we get here" << endl;
 
       // conn.send(resp->get_http_content());
       conn.close_client();
+      cout << "rip us" << endl;
       delete req;
+      cout << "nvm" << endl;
       //delete resp;
     }
 }

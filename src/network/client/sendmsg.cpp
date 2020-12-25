@@ -12,16 +12,6 @@ const char *CA_CERT = "./trusted_certs/ca-chain.cert.pem";
 //const char *CLIENT_CERT = "./dummy/cert.pem";
 //const char *CLIENT_KEY = "./dummy/key.pem";
 
-string format_msgs(vector<string> msgs) {
-	string mail = "";
-	for (auto it = msgs.begin(); it != msgs.end(); ++it) {
-		string m = *it;
-		mail += to_string(m.length()) + "\n" + m + "\n";
-	}
-
-	return mail;
-}
-
 int main(int argc, char *argv[]) {
 	if (argc != 2) {
 		cerr << "sendmsg: missing username" << endl;
@@ -244,11 +234,12 @@ err2:
 */
 		//set msg = to the encrypted text read from the file
 		msgs.push_back(msg);
+        int size = msg.size();
+        conn.send_bytes((char *)&size, sizeof(int));
+        conn.send_string(msg);
+        cout << size << endl;
 	}
 
-	string mail = format_msgs(msgs);
-	conn.send(mail);
-	conn.recv();
 
 	return 0;
 
