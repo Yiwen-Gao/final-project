@@ -98,7 +98,7 @@ int main(int argc, char *argv[]) {
 		OpenSSL_add_all_algorithms();
 		ERR_load_crypto_strings();
 
-		tbio = BIO_new_file("signer.pem", "r");
+		tbio = BIO_new_file(CLIENT_CERT, "r");
 		if (!tbio)
 			goto err;
 		rcert = PEM_read_bio_X509(tbio, NULL, 0, NULL);
@@ -155,27 +155,28 @@ err:
 	
 		string signfilename = "./certificates/" + username + ".cert.pem";
 		tbios = BIO_new_file(signfilename.c_str(), "r");
-
+		cout << "hello" << endl;
 		if (!tbios)
 			goto err2;
 
+		cout << "goodbye" << endl;
 		scert = PEM_read_bio_X509(tbios, NULL, 0, NULL);
 
 		BIO_reset(tbios);
 		
 		skey = PEM_read_bio_PrivateKey(tbios, NULL, 0, NULL);
-
+		cout << "here" << endl;
 		if (!scert || !skey)
 		{
 			goto err2;
 		}
-
+		cout << "here1" << endl;
 		ins = BIO_new_file("smencr.txt", "r");
 		if (!ins)
 		{
 			goto err2;
 		}
-
+		cout << "here2" << endl;
 		scms = CMS_sign(scert, skey, NULL, ins, flagss);
 		if (!scms)
 			goto err2;

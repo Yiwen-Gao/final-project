@@ -324,7 +324,6 @@ int main(int argc, char **argv) {
         conn.send_string(cert);
         //resp = new CertResp(cert);
       } else if (req->type == SEND_MSG) {
-        cout << "this is happening?" << endl;
         SendMsgReq smu_req = dynamic_cast<SendMsgReq&>(*req);
         sendmsg(conn.get_common_name(), smu_req.usernames, conn);
         //resp = new MailCertResp("cert1\ncert2\ncert3");
@@ -339,13 +338,10 @@ int main(int argc, char **argv) {
       } else {
         cerr << "./server: invalid http request" << endl;
       }
-      cout << "we get here" << endl;
 
       // conn.send(resp->get_http_content());
       conn.close_client();
-      cout << "rip us" << endl;
       delete req;
-      cout << "nvm" << endl;
       //delete resp;
     }
 }
