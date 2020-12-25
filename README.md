@@ -1,5 +1,5 @@
 # Secure Mail System
-This project allows a predefined set of users to send and receive mail from each other.
+This project allows a predefined set of users to securely mail messages to each other.
 
 ## Installation
 `$ git clone https://github.com/Yiwen-Gao/final-project.git`
@@ -8,25 +8,25 @@ This project allows a predefined set of users to send and receive mail from each
 
 `$ cd final-project`
 
-`$ ./setupmailsystem.sh <base_directory_name>`
+`$ ./setupmailsystem.sh <mail_system_name>`
 
 ## Usage
-`$ cd <base_directory_name>`
-
 Start the server.
+
+`$ cd <mail_system_name>/server`
 
 `$ sudo ./server`
 
 Open a new window to run the client programs.
 
-`$ cd client`
+`$ cd <mail_system_name>/client`
 
 ### 1) getcert
 Retrieve a client certificate.
 
 `$ ./getcert <username>`
 
-At the first prompt, enter the user password. At the second prompt, enter `dummy`--the password for the dummy certificate.
+At the first prompt, enter the user password. At the second prompt, enter the word `dummy`, which is the password for the dummy certificate.
 
 ### 2) changepw
 Change the user's password and retrieve a new client certificate.
@@ -61,10 +61,10 @@ Receive the most recent piece of mail.
 At both prompts, enter the user password.
 
 ## Testing
-Tests are available in `testscripts/`
+Tests are available in `testscripts/`.
 
 ## File Structure
-Inside `<base_directory_name>/`
+All executables and data are inside `<mail_system_name>/`.
 
 - `client/`: client-side executables and data
   - `bin/`: executables

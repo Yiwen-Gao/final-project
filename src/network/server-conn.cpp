@@ -44,7 +44,7 @@ void ServerConnection::set_sock() {
         exit(2);
     }
 
-    if (listen(sock, 5) < 0 ) {
+    if (listen(sock, 5) < 0 ) { // TODO change to 1
         perror("unable to listen");
         exit(2);
     }
@@ -52,7 +52,7 @@ void ServerConnection::set_sock() {
 
 int ServerConnection::accept_client() {
     ssl = SSL_new(ctx);
-    Connection::set_bio();
+    // Connection::set_bio();
 
     struct sockaddr_in sa_cli;
     uint len_cli = sizeof(sa_cli);

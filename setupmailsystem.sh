@@ -2,7 +2,7 @@
 
 if [ $# -eq 0 ]
     then 
-	echo "Must supply a name for the mail system"
+	echo "usage: ./setupmailsystem.sh <mail_system_name>"
 	exit
 fi
 
@@ -65,7 +65,6 @@ mkdir whaledom
 
 cd ../../../client
 mkdir csr certs bin dummy
-
 
 #make everything and copy it into the correct locations
 cd ../../src/certificates
