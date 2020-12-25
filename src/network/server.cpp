@@ -146,6 +146,7 @@ string changepw(string username, string old_password, string new_password, strin
   write(ppipe[1][1], "setp", 4);
   write(ppipe[1][1], user, 50);
   write(ppipe[1][1], old_pass, 100);
+  write(ppipe[1][1], new_pass, 100);
   int result;
   read(ppipe[0][0], &result, sizeof(int));
   if(!result){
@@ -195,7 +196,7 @@ void sendmsg_test(string user, vector<string> recips, vector<char *> messages) {
   }
 }
 
-int sendmsg(string user, vector<string> recips, ServerConnection conn) {
+int sendmsg(string user, vector<string> recips, ServerConnection &conn) {
   if (user == "dummy")
   {
     return -1;
@@ -207,7 +208,7 @@ int sendmsg(string user, vector<string> recips, ServerConnection conn) {
   for(string rec : recips){
     header += rec + ",";
     write(cpipe[1][1], "getc", 4);
-    write(cpipe[1][1], user.c_str(), 50);
+    write(cpipe[1][1], rec.c_str(), 50);
     char cert[8192];
     int l;
     read(cpipe[0][0], &l, sizeof(int));
@@ -255,7 +256,7 @@ string recvmsg_test(string user, string &cert_in) {
   }
 }
 
-void recvmsg(string user, ServerConnection conn) {
+void recvmsg(string user, ServerConnection &conn) {
   write(mpipe[1][1], "recv", 4);
   write(mpipe[1][1], user.c_str(), user.size());
   int l;
@@ -918,7 +919,7 @@ std::string getCurrNumber(const std::string &mailbox_name)
 
 int isMailEmpty(const std::string &mailbox_name)
 {
-    return getCurrNumber(mailbox_name) == "00001";
+    return getNextNumber(mailbox_name) == "00001";
 }
 
 std::string getNextNumber(const std::string &mailbox_name)

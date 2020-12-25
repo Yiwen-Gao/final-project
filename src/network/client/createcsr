@@ -20,12 +20,12 @@ cd csr
 
 #move these into setup scripts
 #mkdir private
-#chmod 700 private
+chmod 700 private
 
 #create the private key for the csr
 openssl genrsa -aes256 -passout pass:$2 -out private/$1.key.pem 2048
 
-chmod 400 private/$1.key.pem
+#chmod 400 private/$1.key.pem
 
 openssl req \
 		-key private/$1.key.pem \

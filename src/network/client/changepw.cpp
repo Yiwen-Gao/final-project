@@ -252,7 +252,7 @@ int main(int argc, char **argv) {
 			cerr << "Writing to file failed" << endl;
 			return 1;
 		}
-		printf("%s", ibuf);
+		//printf("%s", ibuf);
 	}
 	
 	//concatenate the private key to the end of the cert file
