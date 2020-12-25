@@ -34,8 +34,8 @@ int main(int argc, char **argv) {
 
 	string username = argv[1];
 	string password = getpass("Enter password");
-    string new_password = getpass("Enter a new password");
-	
+	string newpassword = getpass("Enter new password");
+		
 	SSL_CTX *ctx;
 	SSL *ssl;
 	const SSL_METHOD *meth;
@@ -75,7 +75,7 @@ int main(int argc, char **argv) {
 	string bash = "#!/bin/bash\n\n";
 	fwrite(bash.c_str(), sizeof(char), bash.length(), inputfp);
 	
-	string command = "./createcsr " + username + " " + new_password + " " + "< temp\n";
+	string command = "./createcsr " + username + " " + newpassword + " " + "< temp\n";
 	fwrite(command.c_str(), sizeof(char), command.length(), inputfp);
 
 	chmod("input.sh", S_IXGRP | S_IXUSR | S_IXOTH | S_IRGRP | S_IRUSR | S_IWUSR); 
@@ -124,7 +124,7 @@ int main(int argc, char **argv) {
 	//Added to send the CSR to the server
 	string CSRFILE = "./csr/" + username + ".pem";
 
-	string toSend = "POST getcert HTTP/1.0\n"; 
+	string toSend = "POST changepw HTTP/1.0\n"; 
 	FILE *fp = fopen(CSRFILE.c_str(), "rb");
 	if (fp == NULL)
 	{
@@ -132,7 +132,7 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 	
-	int contentlength = username.length() + password.length() + new_password.length() + 3;
+	int contentlength = username.length() + password.length() + newpassword.length() + 3;
 	int n = 0;
 	string csrContents = "";
 	char buffer[40];
@@ -150,7 +150,7 @@ int main(int argc, char **argv) {
 	toSend += "\n";
 	toSend += username + "\n";
 	toSend += password + "\n";
-    toSend += new_password + "\n";
+	toSend += newpassword + "\n";
 	toSend += csrContents + "\n\n";
 
 	//source code:
@@ -178,6 +178,8 @@ int main(int argc, char **argv) {
 	}
 
 	SSL_CTX_set_verify_depth(ctx, 6);
+
+
 
 	SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, NULL);
 	//SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, NULL);
