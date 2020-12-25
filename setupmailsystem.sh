@@ -21,6 +21,8 @@ mkdir ca password mail
 cd password
 mkdir bin
 touch passwords.txt
+cd ../ca
+mkdir bin
 cd ../mail
 mkdir bin mail
 cd mail
@@ -80,7 +82,7 @@ cp server ../../$1/server
 
 cd client
 make
-cp getcert changepw sendmsg recvmsg ../../../$1/client/bin
+cp getcert changepw sendmsg recvmsg createcsr intermediateopenssl.cnf selfsigncert.sh ../../../$1/client/bin
 
 cd ../../passwords
 make
@@ -88,5 +90,13 @@ cp crypt-pw verify-pw add-user change-pw ../../$1/server/password/bin
 
 #copy the ca stuff into the structure
 cd ../../server/certificates
-cp setupca.sh ../../$1/server/ca
+cp setupca.sh issueservercert.sh signcsr.sh ../../$1/server/ca/bin
+cp intermediateopenssl.cnf openssl.cnf casetupinput.txt dummyinput.txt ../../$1/server/ca
 
+#setup the ca within the ca directory
+cd ../../$1/server/ca
+./bin/setupca.sh < casetupinput.txt
+
+#issue the dummy certificate and copy into the appropriate location
+./bin/issueservercert.sh dummy < dummyinput.txt
+cp ./ca/intermediate/certs/dummy.cert.pem ./ca/intermediate/private/dummy.key.pem ../../client/dummy
