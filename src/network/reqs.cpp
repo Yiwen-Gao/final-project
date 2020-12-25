@@ -122,6 +122,11 @@ string SendMsgReq::get_body() {
 
 // recvmsg req
 RecvMsgReq::RecvMsgReq(string username) {
+    int newline = username.find('\n');
+    if(newline != string::npos)
+    {
+        username=username.substr(0,newline);
+    }
     type = RECV_MSG;
     this->username = username;
 }

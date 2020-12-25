@@ -31,6 +31,11 @@ int Connection::send_bytes(char *bytes, int num_bytes)
     return SSL_write(ssl, bytes, num_bytes);
 }
 
+int Connection::read_bytes(char *buf, int num_bytes)
+{
+    return SSL_read(ssl, buf, num_bytes);
+}
+
 
 void Connection::set_certs() {
     /* Load client/server certificate into the SSL context */
