@@ -918,7 +918,7 @@ std::string getCurrNumber(const std::string &mailbox_name)
 
 int isMailEmpty(const std::string &mailbox_name)
 {
-    return getCurrNumber(mailbox_name) == "00001";
+    return getNextNumber(mailbox_name) == "00001";
 }
 
 std::string getNextNumber(const std::string &mailbox_name)
