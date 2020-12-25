@@ -272,6 +272,6 @@ int main(int argc, char *argv[]) {
     }
 
     vector<string> intermediates{ CREDENTIALS_PATH, INPUT_PATH, SENDER_CERT, DECRYPT_PATH, VERIFY_PATH };
-    // delete_files(intermediates);
+    delete_files(intermediates);
 	return 0;
 }

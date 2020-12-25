@@ -17,9 +17,8 @@
 #include <openssl/x509.h>
 
 const int DEFAULT_PORT = 443;
-const std::string TRUSTED = "./trusted_certificates/";
-const char* DUMMY_CERT = "./dummy/cert.pem";
-const char* DUMMY_KEY = "./dummy/key.pem";
+const char* DUMMY_CERT = "./certs/dummy/cert.pem";
+const char* DUMMY_KEY = "./certs/dummy/key.pem";
 
 using namespace std;
 

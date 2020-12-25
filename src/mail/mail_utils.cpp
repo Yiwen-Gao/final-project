@@ -12,7 +12,7 @@ namespace fs = std::filesystem;
 #define MAIL_FROM_MAX 12
 #define RCPT_TO_MAX 10
 
-const std::string mail_prefix = "../../server/mail/";
+const std::string mail_prefix = "./mail/mail";
 
 /*
 Input: (std::string) A string.

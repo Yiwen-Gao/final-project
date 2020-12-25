@@ -13,7 +13,7 @@ using namespace std;
 char * crypt_gensalt(char const *prefix, unsigned long count, char const *rbytes, int nrbytes);
 
 /****************************** MACROS ******************************/
-#define DB_NAME "passwords.txt"
+#define DB_NAME "./password/passwords.txt"
 
 /*********************** CLASS DECLARATIONS **********************/
 class User {
