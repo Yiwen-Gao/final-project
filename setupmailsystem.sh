@@ -75,7 +75,7 @@ cd ../mail
 make
 cp get-msg ../../$1/server/mail/bin
 
-cd ../network
+cd ../server
 make
 cp server ../../$1/server
 
@@ -89,13 +89,16 @@ cp crypt-pw verify-pw add-user change-pw ../../$1/server/password/bin
 
 #copy the ca stuff into the structure
 cd ../../server/certificates
-cp setupca.sh issueservercert.sh signcsr.sh ../../$1/server/ca/bin
-cp intermediateopenssl.cnf openssl.cnf casetupinput.txt dummyinput.txt ../../$1/server/ca
+cp setupca.sh issueservercert.sh issueclientcert.sh signcsr.sh ../../$1/server/ca/bin
+cp intermediateopenssl.cnf openssl.cnf casetupinput.txt serverinput.txt dummyinput.txt ../../$1/server/ca
 
 #setup the ca within the ca directory
 cd ../../$1/server/ca
 ./bin/setupca.sh < casetupinput.txt
 
+#issue the server certificate
+./bin/issueservercert.sh localhost < serverinput.txt
+
 #issue the dummy certificate and copy into the appropriate location
-./bin/issueservercert.sh dummy < dummyinput.txt
+./bin/issueclientcert.sh dummy < dummyinput.txt
 cp ./ca/intermediate/certs/dummy.cert.pem ./ca/intermediate/private/dummy.key.pem ../../client/dummy
