@@ -10,7 +10,7 @@ LDFLAGS = -g
 LDLIBS = -lcrypt
 
 .PHONY: default
-default: crypt-pw verify-pw change-pw
+default: crypt-pw verify-pw change-pw add-user
 
 crypt-pw: db-manager.o crypt-pw.o
 	$(CC) $(LDFLAGS) db-manager.o crypt-pw.o $(LDLIBS) -o crypt-pw 
@@ -33,4 +33,4 @@ add-user: db-manager.o add-user.o
 
 .PHONY: clean
 clean:
-	rm -f *.o crypt-pw verify-pw change-pw
+	rm -f *.o crypt-pw verify-pw change-pw add-user
