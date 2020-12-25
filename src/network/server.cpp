@@ -190,7 +190,14 @@ void sendmsg_test(string user, vector<string> recips, vector<char *> messages) {
   }
 }
 
-void sendmsg(string user, vector<string> recips, ServerConnection conn) {
+int sendmsg(string user, vector<string> recips, ServerConnection conn) {
+  if (user == "dummy")
+  {
+    return -1;
+  }
+  cout << "calling sendmsg" << endl;
+  cout << "this is called on user: " << user << endl << "recip: " << recips[0] << endl;
+  conn.send("HTTP/1.0 200 OK\nContent-Length: idgaf\n");
   string header = user + "\n";
   for(string rec : recips){
     header += rec + ",";
@@ -202,12 +209,15 @@ void sendmsg(string user, vector<string> recips, ServerConnection conn) {
     read(cpipe[0][0], cert, l);
     string c(cert, l);
     conn.send_string(c);
+    cout << "sent cert" << endl;
   }
+  conn.send_string("\n");
   header += "\n";
   vector<int> sizes;
   vector<char *> messages = conn.get_sendmsg_messages(recips.size(), sizes);
   int index = 0;
   for(string rec : recips){
+    cout << "sending msg to " << rec << endl;
     write(mpipe[1][1], "send", 4);
     write(mpipe[1][1], rec.c_str(), 50);
     int curr_len = header.size() + sizes[index];
@@ -216,6 +226,8 @@ void sendmsg(string user, vector<string> recips, ServerConnection conn) {
     write(mpipe[1][1], messages[index], sizes[index]);
     free(messages[index++]);
   }
+  cout << "finished sendmsg" << endl;
+  return 0;
 }
 
 string recvmsg_test(string user, string &cert_in) {
@@ -302,7 +314,9 @@ int main(int argc, char **argv) {
       conn.accept_client();
       cout << "LOOK AT ME IM A TWEE: " << conn.get_common_name() << endl;
       string http_content = conn.recv();
+      cout << "do we get here?" << endl;
       BaseReq *req = parse_req(http_content);
+      cout << "how about here" << endl;
       BaseResp *resp;
       if (req->type == GET_CERT) {
         GetCertReq gc_req = dynamic_cast<GetCertReq&>(*req);
@@ -315,6 +329,7 @@ int main(int argc, char **argv) {
         conn.send_string(cert);
         //resp = new CertResp(cert);
       } else if (req->type == SEND_MSG) {
+        cout << "this is happening?" << endl;
         SendMsgReq smu_req = dynamic_cast<SendMsgReq&>(*req);
         sendmsg(conn.get_common_name(), smu_req.usernames, conn);
         //resp = new MailCertResp("cert1\ncert2\ncert3");
@@ -333,7 +348,7 @@ int main(int argc, char **argv) {
       // conn.send(resp->get_http_content());
       conn.close_client();
       delete req;
-      delete resp;
+      //delete resp;
     }
 }
 
@@ -446,8 +461,8 @@ static int password_exec(void *fd){
       else if(pi == 0){
         //dup2(ppipe[0][1], STDOUT_FILENO);
         close(ppipe[0][1]);
-        //return 0;
-        execl("../passwords/verify-pw", "verify-pw", user, password, (char*)0);
+        return 0;
+        //execl("../passwords/verify-pw", "verify-pw", user, password, (char*)0);
         cout << errno << endl;
       }
       else {

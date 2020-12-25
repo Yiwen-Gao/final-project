@@ -107,12 +107,5 @@ vector<char *> Connection::get_sendmsg_messages(int num_messages, vector<int> &s
 }
 
 void Connection::send(string msg) {
-    uint start = 0;
-    while (start < msg.length()) {
-        int size = min(strlen(obuf) - 1, msg.length() - start);
-        memset(obuf, '\0', strlen(obuf));
-        strncpy(obuf, msg.substr(start).c_str(), size);
-        SSL_write(ssl, obuf, strlen(obuf));
-        start += strlen(obuf);
-    }
+    SSL_write(ssl, msg.c_str(), msg.length());
 }

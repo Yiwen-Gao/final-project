@@ -97,7 +97,7 @@ string SendMsgReq::get_header() {
 
 string SendMsgReq::get_body() {
     string data = vec_to_str(this->usernames);
-    return CONTENT_OP + " " + to_string(data.length()) + "\n" + data;  
+    return CONTENT_OP + " " + to_string(data.length()) + "\n" + data + "\n";  
 }
 
 // // sendmsg to mail req

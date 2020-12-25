@@ -28,7 +28,6 @@ int main(int argc, char *argv[]) {
 		exit(1);
 	}
 
-	cout << "separate users by newlines; separate users from message by two newlines; terminate msg with a period and a newline" << endl;
 	string username = argv[1];
 
 	string client_cert = "./certificates/" + username + ".cert.pem";
@@ -57,7 +56,9 @@ int main(int argc, char *argv[]) {
 	conn.connect_server();
 	
 	SendMsgReq req = SendMsgReq(users);
+    string output = req.get_http_content();
 	conn.send(req.get_http_content());
+
 
 	string http_content = conn.recv();
 	string body = remove_headers(http_content);
@@ -221,7 +222,7 @@ err2:
 		strstream << encryptedandsigned.rdbuf();
 		msg = strstream.str();
 		//move these to the very end.
-		if (remove("encr.txt") != 0)
+	/*	if (remove("encr.txt") != 0)
 		{
 			cerr << "Problem removing temp file" << endl;
 		}
@@ -240,7 +241,7 @@ err2:
 		{
 			cerr << "Problem removing temp file" << endl;
 		}
-
+*/
 		//set msg = to the encrypted text read from the file
 		msgs.push_back(msg);
 	}
