@@ -48,9 +48,21 @@ string MailCertResp::get_body() {
 
 // recvmsg resp
 MailResp::MailResp(string content) {
-    int i = content.find("\n\n");
-    address = content.substr(0, i);
-    msg = content.substr(i + 2);
+    int one = content.find("\n");
+    if (one == string::npos)
+    {
+        return;
+    }
+    int two = content.substr(0, one + 1).find("\n");
+    if (two == string::npos)
+    {
+        return;
+    }
+    address = content.substr(0, one + two + 1);
+    
+    msg = content.substr(one + two + 2);
+    cout << endl << endl << "address: " << address << endl;
+    cout << endl << "msg: " << msg << endl;
 }
 
 string MailResp::get_body() {

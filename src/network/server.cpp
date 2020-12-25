@@ -268,7 +268,9 @@ void recvmsg(string user, ServerConnection conn) {
     read(cpipe[0][0], &len_cert, sizeof(int));
     read(cpipe[0][0], cert, len_cert);
     string c(cert, len_cert);
+    conn.send_bytes((char *)&len_cert, sizeof(int));
     conn.send_string(c);
+    conn.send_bytes((char *)&l, sizeof(int));
     conn.send_bytes(message, l);
   }
 }
@@ -333,6 +335,7 @@ int main(int argc, char **argv) {
         //conn.send("OK");
       } else if (req->type == RECV_MSG) {
         RecvMsgReq rm_req = dynamic_cast<RecvMsgReq&>(*req);
+        cout << "username: " << rm_req.username << endl;
         recvmsg(rm_req.username, conn);
         //resp = new MailResp("addleness\nwhaledom,wamara\n\nhello!!!\n");
       } else {
@@ -410,6 +413,7 @@ static int mail_exec(void *fd){
         perror("fork failed");
       }
       else if(pi==0){
+        cout << "out:" << user << ":" << endl;
         dup2(mpipe[0][1], STDOUT_FILENO);
         close(mpipe[0][1]);
         close(mpipe[1][0]);
@@ -455,8 +459,8 @@ static int password_exec(void *fd){
       else if(pi == 0){
         //dup2(ppipe[0][1], STDOUT_FILENO);
         close(ppipe[0][1]);
-        return 0;
-        //execl("../passwords/verify-pw", "verify-pw", user, password, (char*)0);
+        //return 0;
+        execl("../passwords/verify-pw", "verify-pw", user, password, (char*)0);
         cout << errno << endl;
       }
       else {

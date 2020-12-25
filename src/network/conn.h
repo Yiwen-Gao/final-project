@@ -65,6 +65,7 @@ class Connection {
         void set_certs();
         int send_bytes(char *bytes, int num_bytes);
         int send_string(std::string to_send);
+        int read_bytes(char *bytes, int num_bytes);
         void set_bio();
         std::string recv();
         void send(std::string msg);

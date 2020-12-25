@@ -10,7 +10,9 @@ extern "C" {
 
 using namespace std;
 
-const string CA_CERT = "./trusted_certs/ca-chain.cert.pem";
+const string CHAIN_CERT = "./trusted_certs/ca-chain.cert.pem";
+const string CA_CERT = "./trusted_certs/ca.cert.pem";
+const string INT_CERT = "./trusted_certs/intermediate.cert.pem";
 const string CLIENT_CERT_PREFIX = "./certificates/";
 const string CLIENT_KEY_PREFIX = "./csr/private/";
 
@@ -18,6 +20,7 @@ const string INPUT_PATH = "./smout.txt"; // "./input.txt";
 const string DECRYPT_PATH = "./decrypt.txt";
 const string VERIFY_PATH = "./verify.txt";
 const string CREDENTIALS_PATH = "./credentials.txt";
+const string SENDER_CERT = "./sender.cert.pem";
 
 void write_to_file(string path, string text) {
     ofstream output_file(path);
@@ -50,10 +53,10 @@ void delete_files(vector<string> filenames) {
     }
 }
 
-bool verify_signature(string ca_cert, string sender_cert, string input, string output) {
-    BIO *in = NULL, *out = NULL, *tbio = NULL, *sbio = NULL, *cont = NULL;
+bool verify_signature(string ca_cert, string int_cert, string sender_cert, string input, string output) {
+    BIO *in = NULL, *out = NULL, *tbio = NULL, *ibio = NULL, *sbio = NULL, *cont = NULL;
     X509_STORE *st = NULL;
-    X509 *cacert = NULL, *scert = NULL;
+    X509 *cacert = NULL, *icert = NULL, *scert = NULL;
     CMS_ContentInfo *cms = NULL;
     STACK_OF(X509) *certs;
     bool is_verified = false;
@@ -74,6 +77,17 @@ bool verify_signature(string ca_cert, string sender_cert, string input, string o
         goto err;
 
     if (!X509_STORE_add_cert(st, cacert))
+        goto err;
+
+    ibio = BIO_new_file(int_cert.c_str(), "r");
+    if (!ibio)
+        goto err;
+
+    icert = PEM_read_bio_X509(ibio, NULL, 0, NULL);
+    if (!icert)
+        goto err;
+
+    if (!X509_STORE_add_cert(st, icert))
         goto err;
 
     // read in sender cert
@@ -105,6 +119,7 @@ bool verify_signature(string ca_cert, string sender_cert, string input, string o
     out = BIO_new_file(output.c_str(), "w");
     if (!out)
         goto err;
+    cout << "let's try to verify" << endl;
 
     if (!CMS_verify(cms, certs, st, cont, out, CMS_NOINTERN)) {
         fprintf(stderr, "Verification Failure\n");
@@ -198,33 +213,65 @@ int main(int argc, char *argv[]) {
     string username = argv[1];
     string client_cert_path = CLIENT_CERT_PREFIX + username + ".cert.pem";
     string client_key_path = CLIENT_KEY_PREFIX + username + ".key.pem";
-    ClientConnection conn = ClientConnection(CA_CERT.c_str(), client_cert_path.c_str(), client_key_path.c_str());
+    ClientConnection conn = ClientConnection(CHAIN_CERT.c_str(), client_cert_path.c_str(), client_key_path.c_str());
     conn.connect_server();
     
     // comm with server
     RecvMsgReq req = RecvMsgReq(username);
 	conn.send(req.get_http_content());
-    string http_content = conn.recv();
-    string body = remove_headers(http_content);
-    MailResp resp = MailResp(body);
+    int len;
+    conn.read_bytes((char *) &len, sizeof(int));
+    char *send_cert_ptr = (char *) malloc(len);
+    conn.read_bytes(send_cert_ptr, len);
+    string send_cert (send_cert_ptr, len);
+    free(send_cert_ptr);
+
+    conn.read_bytes((char *) &len, sizeof(int));
+    char *body_ptr = (char *) malloc(len);
+    conn.read_bytes(body_ptr, len);
+    string content (body_ptr, len);
+    free(body_ptr);
+    int one = content.find("\n");
+    if (one == string::npos)
+    {
+        return -1;
+    }
+    int two = content.substr(0, one + 1).find("\n");
+    if (two == string::npos)
+    {
+        return -1;
+    }
+    string address = content.substr(0, one + two + 1);
+    string msg = content.substr(one + two + 2);
+    
+    msg = content.substr(one + two + 3);
+    msg = msg.substr(0, msg.size() - 1);
+    /*int trim = msg.find("------");
+    trim += msg.substr(trim + 6).find("------") + 6;
+    msg = msg.substr(0, trim);
+    trim = msg.find("MIME");
+    trim += msg.substr(trim + 4).find("MIME") + 4;
+    trim += msg.substr(trim + 4).find("MIME") + 4;
+    msg = msg.substr(trim);*/
+    cout << endl << endl << "address:" << endl << address << endl << "~~~~~~" << endl;
+    cout << "msg:" << endl << msg << endl << "~~~~~~~" << endl;
+    cout << "cert:" << endl << send_cert << endl << "~~~~~~~" << endl;
 
     // set up decryption and verification
-    write_to_file(INPUT_PATH, resp.msg);
-    string cert = read_from_file(client_cert_path);
-    string key = read_from_file(client_key_path);
-    write_to_file(CREDENTIALS_PATH, cert + key);
+    write_to_file(INPUT_PATH, msg);
+    write_to_file(SENDER_CERT, send_cert);
 
     string sender_cert = "./dummy/cert.pem";
-    // if (verify_signature(CA_CERT, sender_cert, INPUT_PATH, VERIFY_PATH) && decrypt_msg(CREDENTIALS_PATH, VERIFY_PATH, DECRYPT_PATH)) {
-    if (decrypt_msg(CREDENTIALS_PATH, INPUT_PATH, DECRYPT_PATH)) {
+    if (verify_signature(CA_CERT, INT_CERT, SENDER_CERT, INPUT_PATH, VERIFY_PATH) && decrypt_msg(client_cert_path, VERIFY_PATH, DECRYPT_PATH)) {
+    //if (decrypt_msg(client_cert_path, INPUT_PATH, DECRYPT_PATH)) {
         // cout << "[mail content]" << endl;
         // cout << resp.address << endl << endl;
-        cout << read_from_file(DECRYPT_PATH);
+        cout << read_from_file(DECRYPT_PATH) << endl;
     } else {
         cerr << "sendmsg: failed to decrypt or verify mail" << endl;
     }
 
-    vector<string> intermediates{ CREDENTIALS_PATH, INPUT_PATH, DECRYPT_PATH, VERIFY_PATH };
+    vector<string> intermediates{ CREDENTIALS_PATH, INPUT_PATH, SENDER_CERT, DECRYPT_PATH, VERIFY_PATH };
     // delete_files(intermediates);
 	return 0;
 }

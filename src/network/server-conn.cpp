@@ -72,7 +72,7 @@ int ServerConnection::accept_client() {
 }
 
 void ServerConnection::close_client() {
-    BIO_free(sbio);
+    //BIO_free(sbio);
     SSL_shutdown(ssl);
     SSL_free(ssl);
     close(client);
