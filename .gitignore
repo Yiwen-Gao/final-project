@@ -63,3 +63,4 @@ __pycache__/
 
 # openssl stuff
 *.pem
+src/network/client/*.txt

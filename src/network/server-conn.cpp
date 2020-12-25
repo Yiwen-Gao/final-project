@@ -50,15 +50,6 @@ void ServerConnection::set_sock() {
     }
 }
 
-int ServerConnection::send_string(string to_send) {
-    return SSL_write(ssl, to_send.c_str(), to_send.length());
-}
-
-int ServerConnection::send_bytes(char *bytes, int num_bytes)
-{
-    return SSL_write(ssl, bytes, num_bytes);
-}
-
 int ServerConnection::accept_client() {
     ssl = SSL_new(ctx);
     Connection::set_bio();
@@ -81,7 +72,7 @@ int ServerConnection::accept_client() {
 }
 
 void ServerConnection::close_client() {
-    // BIO_free(sbio);
+    BIO_free(sbio);
     SSL_shutdown(ssl);
     SSL_free(ssl);
     close(client);

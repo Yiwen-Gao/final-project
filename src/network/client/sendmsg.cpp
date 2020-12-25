@@ -12,23 +12,12 @@ const char *CA_CERT = "./trusted_certs/ca-chain.cert.pem";
 //const char *CLIENT_CERT = "./dummy/cert.pem";
 //const char *CLIENT_KEY = "./dummy/key.pem";
 
-string format_msgs(vector<string> msgs) {
-	string mail = "";
-	for (auto it = msgs.begin(); it != msgs.end(); ++it) {
-		string m = *it;
-		mail += to_string(m.length()) + "\n" + m + "\n";
-	}
-
-	return mail;
-}
-
 int main(int argc, char *argv[]) {
 	if (argc != 2) {
 		cerr << "sendmsg: missing username" << endl;
 		exit(1);
 	}
 
-	cout << "separate users by newlines; separate users from message by two newlines; terminate msg with a period and a newline" << endl;
 	string username = argv[1];
 
 	string client_cert = "./certificates/" + username + ".cert.pem";
@@ -57,7 +46,9 @@ int main(int argc, char *argv[]) {
 	conn.connect_server();
 	
 	SendMsgReq req = SendMsgReq(users);
+    string output = req.get_http_content();
 	conn.send(req.get_http_content());
+
 
 	string http_content = conn.recv();
 	string body = remove_headers(http_content);
@@ -107,7 +98,7 @@ int main(int argc, char *argv[]) {
 		OpenSSL_add_all_algorithms();
 		ERR_load_crypto_strings();
 
-		tbio = BIO_new_file("signer.pem", "r");
+		tbio = BIO_new_file(CLIENT_CERT, "r");
 		if (!tbio)
 			goto err;
 		rcert = PEM_read_bio_X509(tbio, NULL, 0, NULL);
@@ -164,27 +155,28 @@ err:
 	
 		string signfilename = "./certificates/" + username + ".cert.pem";
 		tbios = BIO_new_file(signfilename.c_str(), "r");
-
+		cout << "hello" << endl;
 		if (!tbios)
 			goto err2;
 
+		cout << "goodbye" << endl;
 		scert = PEM_read_bio_X509(tbios, NULL, 0, NULL);
 
 		BIO_reset(tbios);
 		
 		skey = PEM_read_bio_PrivateKey(tbios, NULL, 0, NULL);
-
+		cout << "here" << endl;
 		if (!scert || !skey)
 		{
 			goto err2;
 		}
-
+		cout << "here1" << endl;
 		ins = BIO_new_file("smencr.txt", "r");
 		if (!ins)
 		{
 			goto err2;
 		}
-
+		cout << "here2" << endl;
 		scms = CMS_sign(scert, skey, NULL, ins, flagss);
 		if (!scms)
 			goto err2;
@@ -221,7 +213,7 @@ err2:
 		strstream << encryptedandsigned.rdbuf();
 		msg = strstream.str();
 		//move these to the very end.
-		if (remove("encr.txt") != 0)
+	/*	if (remove("encr.txt") != 0)
 		{
 			cerr << "Problem removing temp file" << endl;
 		}
@@ -240,14 +232,15 @@ err2:
 		{
 			cerr << "Problem removing temp file" << endl;
 		}
-
+*/
 		//set msg = to the encrypted text read from the file
 		msgs.push_back(msg);
+        int size = msg.size();
+        conn.send_bytes((char *)&size, sizeof(int));
+        conn.send_string(msg);
+        cout << size << endl;
 	}
 
-	string mail = format_msgs(msgs);
-	conn.send(mail);
-	conn.recv();
 
 	return 0;
 

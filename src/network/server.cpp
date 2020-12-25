@@ -190,7 +190,14 @@ void sendmsg_test(string user, vector<string> recips, vector<char *> messages) {
   }
 }
 
-void sendmsg(string user, vector<string> recips, ServerConnection conn) {
+int sendmsg(string user, vector<string> recips, ServerConnection conn) {
+  if (user == "dummy")
+  {
+    return -1;
+  }
+  cout << "calling sendmsg" << endl;
+  cout << "this is called on user: " << user << endl << "recip: " << recips[0] << endl;
+  conn.send("HTTP/1.0 200 OK\nContent-Length: idgaf\n");
   string header = user + "\n";
   for(string rec : recips){
     header += rec + ",";
@@ -203,6 +210,7 @@ void sendmsg(string user, vector<string> recips, ServerConnection conn) {
     string c(cert, l);
     conn.send_string(c);
   }
+  conn.send_string("\n");
   header += "\n";
   vector<int> sizes;
   vector<char *> messages = conn.get_sendmsg_messages(recips.size(), sizes);
@@ -216,6 +224,7 @@ void sendmsg(string user, vector<string> recips, ServerConnection conn) {
     write(mpipe[1][1], messages[index], sizes[index]);
     free(messages[index++]);
   }
+  return 0;
 }
 
 string recvmsg_test(string user, string &cert_in) {
@@ -299,8 +308,8 @@ int main(int argc, char **argv) {
     cout << received << endl << endl;
     cout << cert << endl;*/
     while (true) {
+      cout << "is this happening? it shouldn't be" << endl;
       conn.accept_client();
-      cout << "LOOK AT ME IM A TWEE: " << conn.get_common_name() << endl;
       string http_content = conn.recv();
       BaseReq *req = parse_req(http_content);
       BaseResp *resp;
@@ -333,7 +342,7 @@ int main(int argc, char **argv) {
       // conn.send(resp->get_http_content());
       conn.close_client();
       delete req;
-      delete resp;
+      //delete resp;
     }
 }
 
@@ -446,8 +455,8 @@ static int password_exec(void *fd){
       else if(pi == 0){
         //dup2(ppipe[0][1], STDOUT_FILENO);
         close(ppipe[0][1]);
-        //return 0;
-        execl("../passwords/verify-pw", "verify-pw", user, password, (char*)0);
+        return 0;
+        //execl("../passwords/verify-pw", "verify-pw", user, password, (char*)0);
         cout << errno << endl;
       }
       else {

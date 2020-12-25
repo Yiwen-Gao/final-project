@@ -28,7 +28,17 @@ MailCertResp::MailCertResp(vector<string> certs) {
 }
 
 MailCertResp::MailCertResp(string content) {
-    certs = str_to_vec(content);
+    vector<string> lines = str_to_vec(content);
+    string curr = "";
+    for (string line : lines)
+    {
+        curr += line + "\n";
+        if (line.find("END CERTIFICATE") != string::npos)
+        {
+            this->certs.push_back(curr);
+            curr = "";
+        }
+    }
 }
 
 string MailCertResp::get_body() {

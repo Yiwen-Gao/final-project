@@ -22,6 +22,16 @@ Connection::~Connection() {
     EVP_cleanup();
 }
 
+int Connection::send_string(string to_send) {
+    return SSL_write(ssl, to_send.c_str(), to_send.length());
+}
+
+int Connection::send_bytes(char *bytes, int num_bytes)
+{
+    return SSL_write(ssl, bytes, num_bytes);
+}
+
+
 void Connection::set_certs() {
     /* Load client/server certificate into the SSL context */
     if (SSL_CTX_use_certificate_file(ctx, my_cert, SSL_FILETYPE_PEM) <= 0) {
@@ -107,12 +117,5 @@ vector<char *> Connection::get_sendmsg_messages(int num_messages, vector<int> &s
 }
 
 void Connection::send(string msg) {
-    uint start = 0;
-    while (start < msg.length()) {
-        int size = min(strlen(obuf) - 1, msg.length() - start);
-        memset(obuf, '\0', strlen(obuf));
-        strncpy(obuf, msg.substr(start).c_str(), size);
-        SSL_write(ssl, obuf, strlen(obuf));
-        start += strlen(obuf);
-    }
+    SSL_write(ssl, msg.c_str(), msg.length());
 }
