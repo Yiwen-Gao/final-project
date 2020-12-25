@@ -19,6 +19,7 @@ struct FullMessage
 };
 
 /**** FUNCTIONS ****/
+int isMailEmpty(const std::string &username);
 
 /*
 Input: (std::string) A string.
