@@ -208,7 +208,7 @@ int sendmsg(string user, vector<string> recips, ServerConnection conn) {
   for(string rec : recips){
     header += rec + ",";
     write(cpipe[1][1], "getc", 4);
-    write(cpipe[1][1], user.c_str(), 50);
+    write(cpipe[1][1], rec.c_str(), 50);
     char cert[8192];
     int l;
     read(cpipe[0][0], &l, sizeof(int));
