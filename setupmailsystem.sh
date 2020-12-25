@@ -18,9 +18,7 @@ mkdir server client
 
 cd server
 mkdir ca password mail
-cd ca
-mkdir intermediate root users bin
-cd ../password
+cd password
 mkdir bin
 touch passwords.txt
 cd ../mail
@@ -70,12 +68,15 @@ mkdir csr certs bin dummy
 #make everything and copy it into the correct locations
 cd ../../src/certificates
 make
+cp get-cert ../../$1/server/ca/bin
 
 cd ../mail
 make
+cp get-msg ../../$1/server/mail/bin
 
 cd ../network
 make
+cp server ../../$1/server
 
 cd client
 make
@@ -83,5 +84,9 @@ cp getcert changepw sendmsg recvmsg ../../../$1/client/bin
 
 cd ../../passwords
 make
+cp crypt-pw verify-pw add-user change-pw ../../$1/server/password/bin
 
+#copy the ca stuff into the structure
+cd ../../server/certificates
+cp setupca.sh ../../$1/server/ca
 
