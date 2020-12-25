@@ -65,3 +65,23 @@ mkdir whaledom
 
 cd ../../../client
 mkdir csr certs bin dummy
+
+
+#make everything and copy it into the correct locations
+cd ../../src/certificates
+make
+
+cd ../mail
+make
+
+cd ../network
+make
+
+cd client
+make
+cp getcert changepw sendmsg recvmsg ../../../$1/client/bin
+
+cd ../../passwords
+make
+
+
