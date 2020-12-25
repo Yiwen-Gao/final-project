@@ -119,7 +119,7 @@ bool verify_signature(string ca_cert, string int_cert, string sender_cert, strin
     out = BIO_new_file(output.c_str(), "w");
     if (!out)
         goto err;
-    cout << "let's try to verify" << endl;
+    //cout << "let's try to verify" << endl;
 
     if (!CMS_verify(cms, certs, st, cont, out, CMS_NOINTERN)) {
         fprintf(stderr, "Verification Failure\n");
@@ -253,9 +253,9 @@ int main(int argc, char *argv[]) {
     trim += msg.substr(trim + 4).find("MIME") + 4;
     trim += msg.substr(trim + 4).find("MIME") + 4;
     msg = msg.substr(trim);*/
-    cout << endl << endl << "address:" << endl << address << endl << "~~~~~~" << endl;
-    cout << "msg:" << endl << msg << endl << "~~~~~~~" << endl;
-    cout << "cert:" << endl << send_cert << endl << "~~~~~~~" << endl;
+    //cout << endl << endl << "address:" << endl << address << endl << "~~~~~~" << endl;
+    //cout << "msg:" << endl << msg << endl << "~~~~~~~" << endl;
+    //cout << "cert:" << endl << send_cert << endl << "~~~~~~~" << endl;
 
     // set up decryption and verification
     write_to_file(INPUT_PATH, msg);
@@ -266,7 +266,7 @@ int main(int argc, char *argv[]) {
     //if (decrypt_msg(client_cert_path, INPUT_PATH, DECRYPT_PATH)) {
         // cout << "[mail content]" << endl;
         // cout << resp.address << endl << endl;
-        cout << read_from_file(DECRYPT_PATH) << endl;
+        //cout << read_from_file(DECRYPT_PATH) << endl;
     } else {
         cerr << "sendmsg: failed to decrypt or verify mail" << endl;
     }
