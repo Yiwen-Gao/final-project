@@ -332,6 +332,7 @@ int main(int argc, char **argv) {
         cout << "new:" << cp_req.new_password << endl;
         cout << "csr:" << endl << cp_req.csr << endl;
         string cert = changepw(cp_req.username, cp_req.old_password, cp_req.new_password, cp_req.csr);
+        cout << "cert:" << endl << cert << endl;
         conn.send_string(cert);
         //resp = new CertResp(cert);
       } else if (req->type == SEND_MSG) {
