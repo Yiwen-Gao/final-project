@@ -196,7 +196,7 @@ void sendmsg_test(string user, vector<string> recips, vector<char *> messages) {
   }
 }
 
-int sendmsg(string user, vector<string> recips, ServerConnection conn) {
+int sendmsg(string user, vector<string> recips, ServerConnection &conn) {
   if (user == "dummy")
   {
     return -1;
@@ -256,7 +256,7 @@ string recvmsg_test(string user, string &cert_in) {
   }
 }
 
-void recvmsg(string user, ServerConnection conn) {
+void recvmsg(string user, ServerConnection &conn) {
   write(mpipe[1][1], "recv", 4);
   write(mpipe[1][1], user.c_str(), user.size());
   int l;
