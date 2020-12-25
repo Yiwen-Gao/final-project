@@ -204,19 +204,42 @@ int main(int argc, char *argv[]) {
     // comm with server
     RecvMsgReq req = RecvMsgReq(username);
 	conn.send(req.get_http_content());
-    string http_content = conn.recv();
-    string body = remove_headers(http_content);
-    MailResp resp = MailResp(body);
+    int len;
+    conn.read_bytes((char *) &len, sizeof(int));
+    char *body_ptr = (char *) malloc(len);
+    conn.read_bytes(body_ptr, len);
+    string content (body_ptr);
+    free(body_ptr);
+    int one = content.find("\n");
+    if (one == string::npos)
+    {
+        return -1;
+    }
+    int two = content.substr(0, one + 1).find("\n");
+    if (two == string::npos)
+    {
+        return -1;
+    }
+    string address = content.substr(0, one + two + 1);
+    string msg = content.substr(one + two + 2);
+    
+    msg = content.substr(one + two + 2);
+    int trim = msg.find("------");
+    trim += msg.substr(trim + 6).find("------") + 6;
+    msg = msg.substr(0, trim);
+    trim = msg.find("MIME");
+    trim += msg.substr(trim + 4).find("MIME") + 4;
+    trim += msg.substr(trim + 4).find("MIME") + 4;
+    msg = msg.substr(trim);
+    cout << endl << endl << "address: " << address << endl;
+    cout << endl << "msg: " << msg << endl;
 
     // set up decryption and verification
-    write_to_file(INPUT_PATH, resp.msg);
-    string cert = read_from_file(client_cert_path);
-    string key = read_from_file(client_key_path);
-    write_to_file(CREDENTIALS_PATH, cert + key);
+    write_to_file(INPUT_PATH, msg);
 
     string sender_cert = "./dummy/cert.pem";
     // if (verify_signature(CA_CERT, sender_cert, INPUT_PATH, VERIFY_PATH) && decrypt_msg(CREDENTIALS_PATH, VERIFY_PATH, DECRYPT_PATH)) {
-    if (decrypt_msg(CREDENTIALS_PATH, INPUT_PATH, DECRYPT_PATH)) {
+    if (decrypt_msg(client_cert_path, INPUT_PATH, DECRYPT_PATH)) {
         // cout << "[mail content]" << endl;
         // cout << resp.address << endl << endl;
         cout << read_from_file(DECRYPT_PATH);
