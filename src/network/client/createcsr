@@ -11,15 +11,16 @@ if [ -z "$2" ]; then
 fi
 
 #remove previous csr structure
-rm -rf csr
+#rm -rf csr
 
-mkdir csr
+#mkdir csr
 #cp intermediateopenssl.cnf csr/openssl.cnf
 
 cd csr
 
-mkdir private
-chmod 700 private
+#move these into setup scripts
+#mkdir private
+#chmod 700 private
 
 #create the private key for the csr
 openssl genrsa -aes256 -passout pass:$2 -out private/$1.key.pem 2048
