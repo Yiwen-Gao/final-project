@@ -1,56 +1,94 @@
-# final-project
+# Secure Mail System
+This project allows a predefined set of users to send and receive mail from each other.
 
-## Dependencies
-Install the following libraries before starting the CA, client, or server.
+## Installation
+`$ git clone https://github.com/Yiwen-Gao/final-project.git`
 `$ sudo apt-get install libssl-dev`
+`$ cd final-project`
+`$ ./setupmailsystem.sh <base_directory_name>`
 
-## CA
-What I've added:
--Makefile
--TLS client starter code
--demos (these are how to use the SSL routines, so we all have access to them)
--CATools containing all the stuff necessary for the CA.
+## Usage
+`$ cd <base_directory_name>`
 
-How to use the CA:
--This site: http://h30266.www3.hpe.com/odl/axpos/opsys/vmsos84/BA554_90007/ch04s03.html gives info on how to
-set up the TLS client and server using the SSL certificates. Basically you'll load them in 
-specifying the paths to the different certificates.
+Start the server
+`$ sudo ./server`
 
--You'd first want to run ./CASetup to actually set up the CA with the CA and intermediate certs. Then,
-you'd want to run ./issueServerCert and ./issueClientCert to issue the client and server certificates
-to use for the client and server.
+Open a new window to run the client programs
+`$ cd client`
 
--When running ./CASetup, you need to enter something for the common names. I enter RootCA for the root CA and
-IntermediateCA for the intermediate one. 
+#### getcert
+Retrieve a client certificate
+`$ ./getcert <username>`
+At the first prompt, enter the user password
+At the second prompt, enter `dummy`--the password for the dummy certificate 
 
--when setting up the client and server certificates, you'd want to enter something as a command line argument
-to identify the certificates, enter that same thing as the common name.
+#### changepw
+Change user's password and retrieve a new client certificate
+`$ ./changepw <username>`
 
--feel free to replace anything I've done from your HW2 implementation, I'm sure there's things that could
-be improved upon
+#### sendmsg
+Send mail to a list of users
+`$ ./sendmsg <username>`
 
--the password for the certificates is currently password123. I don't know how this should necessarily be done. 
-Should we generate a new password for the certificates every time and store that somewhere?
+#### recvmsg
+Receive the most recent piece of mail
+`$ ./recvmsg <username>`
 
--To generate the certificates to be used for the users, run ./issueEncryptionCert. I wasn't sure 
-exactly what type of certificate it should be. Piazza says "You want a TLS+encryption+signing certificate." But 
-I wasn't sure exactly what this translated to. In the [encyption_cert] section of the intermediate
-config file (intermediateopenss.cnf), I added digitalSignature, and it already had dataEncipherment. I'm
-not sure how to specify that it's a TLS certificate. 
+## Testing
+Tests are available in `testscripts/`
 
-## Server
--bellovin/: Bellovin's provided usernames and passwords 
+## File Structure
+Inside `<base_directory_name>/`
+-- client/: client-side executables and data
+    -- bin/: executables
+        -- changepw: change user's password and retrieve a new client certificate
+        -- createcsr: generate the certificate signing request for getcert and changepw
+        -- getcert: retrieve a client certificate
+        -- intermediateopenssl.cnf:
+        -- recvmsg: receive the most recent piece of mail
+        -- selfsigncert.sh:
+        -- sendmsg: send mail to a list of users
+    -- `MISSING` trusted-certs/:
+        -- ca-chain.cert.pem: intermediate and root certificates concatenated together
+        -- ca.cert.pem: CA root certificate
+        -- intermediate.cert.pem: intermediate certificate signed by CA root certificate
+    -- certs/: client certificates
+    -- csr/: client certificate signing requests
+        -- private/: client keys
+    -- dummy/: 
+        -- dummy.cert.pem: dummy certificate available to all users
+        -- dummy.key.pem: dummy key available to all users
+-- server/: server-side executables and data
+    -- ca/: certificate authentication
+        -- bin/: executables
+            -- get-cert: 
+            -- issueservercert.sh:
+            -- setupca.sh:
+            -- signcsr.sh:
+        -- ca/: (unused items are excluded from the list below)
+            -- certs/:
+                -- ca.cert.pem:
+            -- crl/:
+        -- casetupinput.txt:
+        -- dummyinput:txt:
+        -- intermediateopenssl.cnf:
+        -- openssl.cnf:
+    -- mail/: read and write messages
+        -- bin/: executables
+            -- get-msg:
+            -- `MISSING` mail-in:
+            -- `MISSING` mail-out:
+        -- mail/: user mailboxes
+    -- password/: password authentication
+        -- bin/: excecutables
+            -- add-user: add new user to the mail system
+            -- change-pw: change user's password
+            -- crypt-pw: initialize database with predefined usernames and passwords 
+            -- verify-pw: verify user's password
+        -- passwords.txt: database of usernames, salts, and hashed and salted passwords
+    -- server: accept and respond to client requests
 
--users.csv: formatted storage of usernames, salts, and passwords
+## Permissions
 
--usergen.py: update users.csv with fresh copy of original usernames and passwords 
+## Containerization
 
-usage: `$ python3 usergen.py`
-
--changepw.py: change a user's password 
-
-usage: `$ python3 changepw.py <username> <password>`
-
--verifypw.py: verify a user's password 
-
-usage: `$ python3 verifypw.py <username> <password>`
