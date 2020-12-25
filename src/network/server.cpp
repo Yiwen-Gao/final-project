@@ -131,7 +131,12 @@ string getcert(string username, string password, string csr) {
   }
 }
 
+
 string changepw(string username, string old_password, string new_password, string csr) {
+  if (!isMailEmpty(username))
+  {
+    return "";
+  }
   char user[50];
   char old_pass[100];
   strncpy(user, username.c_str(), 50);
@@ -322,6 +327,10 @@ int main(int argc, char **argv) {
         //resp = new CertResp(cert);
       } else if (req->type == CHANGE_PW) {
         ChangePWReq cp_req = dynamic_cast<ChangePWReq&>(*req);
+        cout << "user:" << cp_req.username << endl;
+        cout << "old:" << cp_req.old_password << endl;
+        cout << "new:" << cp_req.new_password << endl;
+        cout << "csr:" << endl << cp_req.csr << endl;
         string cert = changepw(cp_req.username, cp_req.old_password, cp_req.new_password, cp_req.csr);
         conn.send_string(cert);
         //resp = new CertResp(cert);
@@ -335,7 +344,6 @@ int main(int argc, char **argv) {
         //conn.send("OK");
       } else if (req->type == RECV_MSG) {
         RecvMsgReq rm_req = dynamic_cast<RecvMsgReq&>(*req);
-        cout << "username: " << rm_req.username << endl;
         recvmsg(rm_req.username, conn);
         //resp = new MailResp("addleness\nwhaledom,wamara\n\nhello!!!\n");
       } else {
@@ -486,7 +494,8 @@ static int password_exec(void *fd){
       else if(pi == 0){
         dup2(ppipe[0][1], STDOUT_FILENO);
         close(ppipe[0][1]);
-        execl("../passwords/change-pw", "change-pw", user, prev, curr, (char*)0);
+        return 0;
+        //execl("../passwords/change-pw", "change-pw", user, prev, curr, (char*)0);
       }
       else{
         waitpid(pi, &status, 0);
@@ -904,6 +913,11 @@ std::string getCurrNumber(const std::string &mailbox_name)
     }
 
     return num_str;
+}
+
+int isMailEmpty(const std::string &mailbox_name)
+{
+    return getCurrNumber(mailbox_name) == "00001";
 }
 
 std::string getNextNumber(const std::string &mailbox_name)
