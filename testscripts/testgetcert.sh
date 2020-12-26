@@ -1,4 +1,5 @@
 #!/bin/bash
+#all test scripts assume mail system exists
 
 if [ $# -eq 0 ]
     then 
