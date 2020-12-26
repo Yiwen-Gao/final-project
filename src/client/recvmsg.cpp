@@ -266,12 +266,12 @@ int main(int argc, char *argv[]) {
     //if (decrypt_msg(client_cert_path, INPUT_PATH, DECRYPT_PATH)) {
         // cout << "[mail content]" << endl;
         // cout << resp.address << endl << endl;
-        //cout << read_from_file(DECRYPT_PATH) << endl;
+        cout << read_from_file(DECRYPT_PATH) << endl;
     } else {
         cerr << "sendmsg: failed to decrypt or verify mail" << endl;
     }
 
-    vector<string> intermediates{ CREDENTIALS_PATH, INPUT_PATH, SENDER_CERT, DECRYPT_PATH, VERIFY_PATH };
+    vector<string> intermediates{ INPUT_PATH, SENDER_CERT, DECRYPT_PATH, VERIFY_PATH };
     delete_files(intermediates);
 	return 0;
 }
