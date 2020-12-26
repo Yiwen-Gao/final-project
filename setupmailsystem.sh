@@ -87,15 +87,15 @@ cp -r src/mail/get-msg $1/server/mail/get-msg
 # server - passwords
 cd src/passwords
 make
-./crypt-pw 
 
 cd ../../
 mkdir $1/server/password $1/server/password/bin
-cp src/passwords/passwords.txt $1/server/password
 cp src/passwords/{add-user,change-pw,verify-pw} $1/server/password/bin
+cd $1/server
+./password/bin/crypt-pw 
 
 # server - main program
-cd src/server
+cd ../../src/server
 make
 
 cd ../../
