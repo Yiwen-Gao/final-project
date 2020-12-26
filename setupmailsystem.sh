@@ -6,27 +6,42 @@ if [ $# -eq 0 ]
 	exit
 fi
 
+rm -rf $1
+
 if [ -d $1 ]
 then
     echo "${1} already exists"
     exit 1
 fi
 
+# make folders
 mkdir "$1"
 cd "$1"
 mkdir server client
 
-cd server
-mkdir ca password mail
-cd password
-mkdir bin
-touch passwords.txt
-cd ../ca
-mkdir bin
-cd ../mail
-mkdir bin mail
-cd mail
+# certificates
+cd ../src/certificates
+make
+cd ../../
 
+# server - ca
+mkdir $1/server/ca $1/server/ca/bin $1/server/ca/ca
+cp src/certificates/{casetupinput.txt,dummyinput.txt,intermediateopenssl.cnf,openssl.cnf,serverinput.txt} $1/server/ca
+cp src/certificates/{issueclientcert.sh,issueservercert.sh,get-cert,setupca.sh,signcsr.sh} $1/server/ca/bin
+
+cd $1/server/ca
+# setup the ca within the ca directory
+./bin/setupca.sh < casetupinput.txt
+# issue server cert
+./bin/issueservercert.sh localhost < serverinput.txt
+# # issue client cert
+./bin/issueclientcert.sh dummy < dummyinput.txt
+cd ../../../
+
+# server - mail
+# create mailboxes
+mkdir $1/server/mail 
+cd $1/server/mail
 mkdir addleness
 mkdir analects
 mkdir annalistic
@@ -63,45 +78,43 @@ mkdir vegetocarbonaceous
 mkdir wamara
 mkdir whaledom
 
-cd ../../../client
-mkdir csr certificates bin dummy csr/private trusted_certs
-
-#make everything and copy it into the correct locations
-cd ../../src/certificates
+cd ../../../src/mail
 make
-cp get-cert ../../$1/server/ca/bin
 
-cd ../mail
+cd ../../
+cp -r src/mail/get-msg $1/server/mail/get-msg
+
+# server - passwords
+cd src/passwords
 make
-cp get-msg ../../$1/server/mail/bin
+./crypt-pw 
 
-cd ../server
+cd ../../
+mkdir $1/server/passwords $1/server/passwords/bin
+cp src/passwords/passwords.txt $1/server/passwords
+cp src/passwords/{add-user,change-pw,verify-pw} $1/server/passwords/bin
+
+# server - main program
+cd src/server
 make
-cp server ../../$1/server
 
-cd ../client
+cd ../../
+cp src/server/server $1/server/ca/bin
+
+# client - certs
+mkdir $1/client/{certs,csr,dummy,trusted_certs} $1/client/csr/private
+cd $1/server/ca
+# copy the trusted certs from server to client
+cp ./ca/certs/ca.cert.pem ./ca/intermediate/certs/{intermediate.cert.pem,ca-chain.cert.pem} ../../client/trusted_certs
+# copy dummy info from server to client
+cp ./ca/intermediate/certs/dummy.cert.pem ../../client/dummy/cert.pem
+cp ./ca/intermediate/private/dummy.key.pem ../../client/dummy/key.pem
+cd ../../../
+
+# client - main program
+cd src/client
 make
-cp getcert changepw sendmsg recvmsg createcsr intermediateopenssl.cnf selfsigncert.sh ../../$1/client/bin
 
-cd ../passwords
-make
-cp crypt-pw verify-pw add-user change-pw ../../$1/server/password/bin
-
-#copy the ca stuff into the structure
-cd ../../server/certificates
-cp setupca.sh issueservercert.sh issueclientcert.sh signcsr.sh ../../$1/server/ca/bin
-cp intermediateopenssl.cnf openssl.cnf casetupinput.txt serverinput.txt dummyinput.txt ../../$1/server/ca
-
-#setup the ca within the ca directory
-cd ../../$1/server/ca
-./bin/setupca.sh < casetupinput.txt
-
-#issue the server certificate
-./bin/issueservercert.sh localhost < serverinput.txt
-
-#copy the trusted certs into the appropriate locations on the client
-cp ./ca/certs/ca.cert.pem ./ca/intermediate/certs/intermediate.cert.pem ./ca/intermediate/certs/ca-chain.cert.pem ../../client/trusted_certs
-
-#issue the dummy certificate and copy into the appropriate location
-./bin/issueclientcert.sh dummy < dummyinput.txt
-cp ./ca/intermediate/certs/dummy.cert.pem ./ca/intermediate/private/dummy.key.pem ../../client/dummy
+cd ../../
+mkdir $1/client/bin
+cp src/client/{changepw,createcsr,getcert,recvmsg,sendmsg} $1/client/bin
