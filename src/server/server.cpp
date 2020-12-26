@@ -454,7 +454,7 @@ static int password_exec(void *fd){
         //dup2(ppipe[0][1], STDOUT_FILENO);
         close(ppipe[0][1]);
         //return 0;
-        execl("./passwords/bin/verify-pw", "verify-pw", user, password, (char*)0);
+        execl("./password/bin/verify-pw", "verify-pw", user, password, (char*)0);
         exit(-1);
       }
       else {
@@ -481,7 +481,7 @@ static int password_exec(void *fd){
         dup2(ppipe[0][1], STDOUT_FILENO);
         close(ppipe[0][1]);
         //return 0;
-        execl("../passwords/change-pw", "change-pw", user, prev, curr, (char*)0);
+        execl("./password/bin/change-pw", "change-pw", user, prev, curr, (char*)0);
         exit(-1);
       }
       else{
