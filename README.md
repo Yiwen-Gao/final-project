@@ -10,6 +10,8 @@ This project allows a predefined set of users to securely mail messages to each 
 
 `$ ./setupmailsystem.sh <mail_system_name>`
 
+`$ sudo ./setuppriv.sh`
+
 ## Usage
 Start the server.
 
