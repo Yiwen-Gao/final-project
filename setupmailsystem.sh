@@ -64,7 +64,7 @@ mkdir wamara
 mkdir whaledom
 
 cd ../../../client
-mkdir csr certificates bin dummy csr/private
+mkdir csr certificates bin dummy csr/private trusted_certs
 
 #make everything and copy it into the correct locations
 cd ../../src/certificates
@@ -98,6 +98,9 @@ cd ../../$1/server/ca
 
 #issue the server certificate
 ./bin/issueservercert.sh localhost < serverinput.txt
+
+#copy the trusted certs into the appropriate locations on the client
+cp ./ca/certs/ca.cert.pem ./ca/intermediate/certs/intermediate.cert.pem ./ca/intermediate/certs/ca-chain.cert.pem ../../client/trusted_certs
 
 #issue the dummy certificate and copy into the appropriate location
 ./bin/issueclientcert.sh dummy < dummyinput.txt

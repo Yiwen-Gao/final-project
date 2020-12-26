@@ -17,8 +17,8 @@
 #include <openssl/x509.h>
 
 const int DEFAULT_PORT = 443;
-const char* DUMMY_CERT = "./dummy/cert.pem";
-const char* DUMMY_KEY = "./dummy/key.pem";
+const char* DUMMY_CERT = "./dummy/dummy.cert.pem";
+const char* DUMMY_KEY = "./dummy/dummy.key.pem";
 
 using namespace std;
 
@@ -163,14 +163,17 @@ int main(int argc, char **argv) {
 	meth = TLS_client_method();
 	ctx = SSL_CTX_new(meth);
     if (SSL_CTX_use_certificate_file(ctx, DUMMY_CERT, SSL_FILETYPE_PEM) <= 0) {
+        perror("unable to load dummy cert");
         exit(1);
     }
 
     if (SSL_CTX_use_PrivateKey_file(ctx, DUMMY_KEY, SSL_FILETYPE_PEM) <= 0) {
+        perror("unable to load dummy key");
         exit(1);
     }
 
 	if (!SSL_CTX_load_verify_locations(ctx, "./trusted_certs/ca-chain.cert.pem", NULL)) {
+        perror("unable to load chain file");
 		exit(1);
 	}
 

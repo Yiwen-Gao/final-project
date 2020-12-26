@@ -296,16 +296,19 @@ int main(int argc, char **argv) {
       BaseReq *req = parse_req(http_content);
       BaseResp *resp;
       if (req->type == GET_CERT) {
+        cout << "getcert called" << endl;
         GetCertReq gc_req = dynamic_cast<GetCertReq&>(*req);
         string cert = getcert(gc_req.username, gc_req.password, gc_req.csr);
         conn.send_string(cert);
         //resp = new CertResp(cert);
       } else if (req->type == CHANGE_PW) {
+        cout << "changepw called" << endl;
         ChangePWReq cp_req = dynamic_cast<ChangePWReq&>(*req);
         string cert = changepw(cp_req.username, cp_req.old_password, cp_req.new_password, cp_req.csr);
         conn.send_string(cert);
         //resp = new CertResp(cert);
       } else if (req->type == SEND_MSG) {
+        cout << "sendmsg called" << endl;
         SendMsgReq smu_req = dynamic_cast<SendMsgReq&>(*req);
         sendmsg(conn.get_common_name(), smu_req.usernames, conn);
         //resp = new MailCertResp("cert1\ncert2\ncert3");
@@ -314,6 +317,7 @@ int main(int argc, char **argv) {
         //string msg = conn.recv();
         //conn.send("OK");
       } else if (req->type == RECV_MSG) {
+        cout << "recvmsg called" << endl;
         RecvMsgReq rm_req = dynamic_cast<RecvMsgReq&>(*req);
         recvmsg(rm_req.username, conn);
         //resp = new MailResp("addleness\nwhaledom,wamara\n\nhello!!!\n");
@@ -569,7 +573,7 @@ static int ca_exec(void *fd){
         fread(req, 1, length, csr);
         free(req);
         fclose(csr);
-        execl("./ca/bin/signcsr.sh", "signcsr.sh", location.c_str(), user, (char*)0);
+        execl("./ca/bin/signcsr.sh", "signcsr.sh", user, (char*)0);
       }
       else{
         waitpid(pi, &status, 0);
