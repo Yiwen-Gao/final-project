@@ -112,20 +112,18 @@ All executables and data are inside `<mail_system_name>/`.
     - `passwords.txt`: database of usernames, salts, and hashed/salted passwords
   - `server`: accept and respond to client requests
 
-## Permissions
 
 ## Server Structure and Containerization
 
 Containers are implemented using linux namespaces.
-
-The server consists of four processes, owned by 3 users + nobody.
-The SSL process (which acts as user nobody) gets and receives messages from the client and passes requests (using pipes) to the appropriate secondary process. This is the only process with permission to use networking.
-The password process (which acts as user pass-writer) has permission to run verify-pw and change-pw (which again checks verify-pw)
-The certificate process (which acts as user cert-writer) has permission to create and get certificates, and is used to do so
-The mail process (which acts as user mail-writer) has permission to read from and write to the mail server
-All processes are blocked from doing any other action using namespaces and user namespaces. That is, the server process is sandboxed into only having access to networking, the password process can only read or write files in the password folder, the certificate process can only read or write files in the ca folder, and the mail process can only read or write files in the mail folder. By the principle of least privilege, this is the bare minimum amount of privilege each process can have and still achieve its designated tasks.
-The password process, certificate process, and mail process cannot communicate to each other, since they do not have access to the corresponding pipes.
+The initial server process is run with root privileges in order to bind to port 443, and posses CAP_SYS_ADMIN rights to establish namespaces. It clones three processes in new namespaces, and then sheds its own privileges by placing itself into a new user namespace in which all users have effective uid of nobody.
+The server thus consists of four processes, owned by 3 users + nobody. The SSL process (which acts as user nobody) gets and receives messages from the client and passes requests (using pipes) to the appropriate secondary process. This is the only process with permission to use networking. 
+The password process (which acts as user pass-writer) has permission to run verify-pw and change-pw (which again checks verify-pw).
+The certificate process (which acts as user cert-writer) has permission to create and get certificates, and is used to do so.
+The mail process (which acts as user mail-writer) has permission to read from and write to the mail server. All processes are blocked from doing any other action using namespaces and user permissions.
+The password process, certificate process, and mail process cannot communicate to each other, since they do not have access to the corresponding pipes. 
 This way, the webserver process itself can only make well-defined requests to the processes which need to access any relevant file, and each of these processes are separated from each other. Ideally, these would all be on separate VMs.
+
 
 # NOT COMPLETED TASKS
 
