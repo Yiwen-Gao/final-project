@@ -42,6 +42,8 @@ cd ../../../
 # create mailboxes
 mkdir $1/server/mail 
 cd $1/server/mail
+mkdir mail bin
+cd mail
 mkdir addleness
 mkdir analects
 mkdir annalistic
@@ -77,12 +79,13 @@ mkdir urushinic
 mkdir vegetocarbonaceous
 mkdir wamara
 mkdir whaledom
+cd ..
 
 cd ../../../src/mail
 make
 
 cd ../../
-cp -r src/mail/get-msg $1/server/mail/get-msg
+cp -r src/mail/get-msg $1/server/mail/bin/get-msg
 
 # server - passwords
 cd src/passwords
