@@ -2,7 +2,7 @@
 
 int main() {
     vector<User> users;
-	ifstream file("original-user-info.txt");
+	ifstream file("./password/original-user-info.txt");
 	size_t first_del, second_del;
 	string line, username, temp, password;
 	
