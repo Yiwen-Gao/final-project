@@ -33,7 +33,7 @@ Change the user's password and retrieve a new client certificate.
 
 `$ ./changepw <username>`
 
-MISSING
+At the first prompt, enter the old password. At the second prompt, enter your new password.
 
 ### 3) sendmsg
 Send mail to a list of users.
@@ -75,7 +75,7 @@ All executables and data are inside `<mail_system_name>/`.
     - `recvmsg`: receive most recent piece of mail
     - `selfsigncert.sh`: MISSING
     - `sendmsg`: send mail to list of users
-  - MISSING `trusted-certs/`: predefined trusted certificates
+  - `trusted-certs/`: predefined trusted certificates
     - `ca-chain.cert.pem`: concatenated intermediate and root certificates 
     - `ca.cert.pem`: root certificate
     - `intermediate.cert.pem`: intermediate certificate signed by CA 
@@ -86,14 +86,14 @@ All executables and data are inside `<mail_system_name>/`.
       - `dummy.key.pem`: dummy key for `getcert`
 - `server/`: server-side executables and data
   - `ca/`: certificate authentication
-      - `bin/`: executables
-        - `get-cert`: create new client certificate
-        - `issueservercert.sh`: create server certificate
-        - `setupca.sh`: set up `server/ca/ca/` directory
-        - `signcsr.sh`: sign certificate request
+    - `bin/`: executables
+      - `get-cert`: create new client certificate
+      - `issueservercert.sh`: create server certificate
+      - `setupca.sh`: set up `server/ca/ca/` directory
+      - `signcsr.sh`: sign certificate request
     - `ca/`: data storage (following list only contains select items)
-        - `certs/ca.cert.pem`: root certificate
-        - `intermediate/certs/`: CA chain, intermediate, dummy, and client certificates
+      - `certs/ca.cert.pem`: root certificate
+      - `intermediate/certs/`: CA chain, intermediate, dummy, and client certificates
     - `casetupinput.txt`: MISSING
     - `dummyinput.txt`: MISSING
     - `intermediateopenssl.cnf`: intermediate certificate configuration
@@ -101,8 +101,6 @@ All executables and data are inside `<mail_system_name>/`.
   - `mail/`: read and write messages
     - `bin/`: executables
       - `get-msg`: read message from user mailbox
-      - MISSING `mail-in`: format message for writing
-      - MISSING `mail-out`: write message to user mailbox
     - `mail/`: user mailboxes
   - `password/`: password authentication
     - `bin/`: executables
