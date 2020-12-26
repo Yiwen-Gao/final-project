@@ -90,7 +90,7 @@ make
 
 cd ../../
 mkdir $1/server/password $1/server/password/bin
-cp src/passwords/{add-user,change-pw,verify-pw} $1/server/password/bin
+cp src/passwords/{add-user,change-pw,verify-pw,crypt-pw} $1/server/password/bin
 cd $1/server
 ./password/bin/crypt-pw 
 
