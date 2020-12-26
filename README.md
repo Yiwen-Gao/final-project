@@ -62,6 +62,7 @@ At both prompts, enter the user password.
 
 ## Testing
 Tests are available in `testscripts/`.
+Tests assume that the mailsystem has been set up in advance, and the server is running. They take in as a parameter the name of the mailsystem. To run tests multiple times, you must set up a clean mailsystem.
 
 ## File Structure
 All executables and data are inside `<mail_system_name>/`.
@@ -123,3 +124,13 @@ The mail process (which acts as user mail-writer) has permission to read from an
 All processes are blocked from doing any other action using namespaces and user namespaces
 The password process, certificate process, and mail process cannot communicate to each other, since they do not have access to the corresponding pipes.
 This way, the webserver process itself can only make well-defined requests to the processes which need to access any relevant file, and each of these processes are separated from each other. Ideally, these would all be on separate VMs.
+
+# NOT COMPLETED TASKS
+
+Currently, when the server receives invalid input or an incorrect password, it does not respond to the client at all and simply closes the connection. This should return an error message over HTTPS instead, but we did not have time to implement this.
+The server should never crash, but ideally we would have the overarching process restart the server and other child processes if any of them crash.
+Furthermore, the server should cut a client that has stayed connected for too long (timeout).
+Currently, the client does not have much protection against the server (although it is unclear how the server could attack). Ideally, the client programs would also have restricted privileges and use containerization.
+In terms of testing, we would also have liked time to add these tests:
+Server rejects connecting with expired certificates.
+Server does not crash when sent too long a certificate.
