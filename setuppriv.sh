@@ -13,3 +13,6 @@ useradd pass-writer
 chown -R cert-writer $1/server/ca
 chown -R mail-writer $1/server/mail
 chown -R pass-writer $1/server/password
+chmod -R 700 $1/server/ca
+chmod -R 700 $1/server/mail
+chmod -R 700 $1/server/password
