@@ -137,3 +137,4 @@ Currently, the client does not have much protection against the server (although
 In terms of testing, we would also have liked time to add these tests:
 Server rejects connecting with expired certificates.
 Server does not crash when sent too long a certificate.
+If getcert fails, for instance because a password is incorrect, it will create an empty certificate file with no contents which may cause issues for some of the other programs.
