@@ -91,8 +91,8 @@ make
 
 cd ../../
 mkdir $1/server/password $1/server/password/bin
-cp src/password/passwords.txt $1/server/password
-cp src/password/{add-user,change-pw,verify-pw} $1/server/password/bin
+cp src/passwords/passwords.txt $1/server/password
+cp src/passwords/{add-user,change-pw,verify-pw} $1/server/password/bin
 
 # server - main program
 cd src/server
