@@ -1,4 +1,5 @@
 #!/bin/bash
+# Tests assume mail system exists and server is running in the background
 
 if [ $# -eq 0 ]
     then 
