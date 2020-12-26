@@ -99,7 +99,7 @@ cd ../../src/server
 make
 
 cd ../../
-cp src/server/server $1/server/ca/bin
+cp src/server/server $1/server
 
 # client - certs
 mkdir $1/client/{certs,csr,dummy,trusted_certs} $1/client/csr/private
