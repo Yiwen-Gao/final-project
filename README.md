@@ -71,19 +71,17 @@ All executables and data are inside `<mail_system_name>/`.
     - `changepw`: change user password and retrieve new client certificate
     - `createcsr`: create certificate signing request for `getcert` and `changepw`
     - `getcert`: retrieve client certificate
-    - `intermediateopenssl.cnf`: intermediate certificate configuration used by `selfsigncert.sh`
     - `recvmsg`: receive most recent piece of mail
-    - `selfsigncert.sh`: MISSING
     - `sendmsg`: send mail to list of users
+  - `certs/`: client certificates
+  - `csr/`: client certificate signing requests and client keys
+  - `dummy/`: certificate authentication for users without their own certificate
+    - `dummy.cert.pem`: dummy certificate for `getcert` 
+    - `dummy.key.pem`: dummy key for `getcert`
   - `trusted-certs/`: predefined trusted certificates
     - `ca-chain.cert.pem`: concatenated intermediate and root certificates 
     - `ca.cert.pem`: root certificate
     - `intermediate.cert.pem`: intermediate certificate signed by CA 
-  - `certs/`: client certificates
-    - `csr/`: client certificate signing requests and client keys
-    - `dummy/`: certificate authentication for users without their own certificate
-      - `dummy.cert.pem`: dummy certificate for `getcert` 
-      - `dummy.key.pem`: dummy key for `getcert`
 - `server/`: server-side executables and data
   - `ca/`: certificate authentication
     - `bin/`: executables
@@ -94,8 +92,8 @@ All executables and data are inside `<mail_system_name>/`.
     - `ca/`: data storage (following list only contains select items)
       - `certs/ca.cert.pem`: root certificate
       - `intermediate/certs/`: CA chain, intermediate, dummy, and client certificates
-    - `casetupinput.txt`: MISSING
-    - `dummyinput.txt`: MISSING
+    - `casetupinput.txt`: CA setup input file
+    - `dummyinput.txt`: dummy certificate input file
     - `intermediateopenssl.cnf`: intermediate certificate configuration
     - `openssl.cnf`: CA configuration
   - `mail/`: read and write messages
