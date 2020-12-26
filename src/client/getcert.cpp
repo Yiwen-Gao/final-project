@@ -33,7 +33,14 @@ int main(int argc, char **argv) {
 
 	string username = argv[1];
 	string password = getpass("Enter password");
-	
+
+	string certificateFile1 = "./certificates/" + username + ".cert.pem";
+	if (access(certificateFile1.c_str(), F_OK) != -1)
+	{
+		cerr << "Certificate file already exists, cannot call getcert twice" << endl;
+		return 1;	
+	}
+
 	SSL_CTX *ctx;
 	SSL *ssl;
 	const SSL_METHOD *meth;
@@ -48,6 +55,7 @@ int main(int argc, char **argv) {
 	if (tempfp == NULL)
 	{
 		cerr << "unable to open temp file" << endl;
+		return 1;
 	}
 
 	//create a temp file for input to the csr
@@ -68,6 +76,7 @@ int main(int argc, char **argv) {
 	if (inputfp == NULL)
 	{
 		cerr << "unable to open temp file" << endl;
+		return 1;
 	}
 
 	string bash = "#!/bin/bash\n\n";
