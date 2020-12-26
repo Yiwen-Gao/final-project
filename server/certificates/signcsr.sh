@@ -24,14 +24,16 @@ fi
 # 			-key intermediate/private/$1.key.pem \
 # 			-new -sha256 -out intermediate/csr/$1.csr.pem
 
-openssl ca -config $1openssl.cnf \
+cd ./ca/ca
+
+openssl ca -config ./intermediate/openssl.cnf \
 		   -extensions usr_cert -days 375 -notext -md sha256 \
-		   -in $1csr/$2.csr.pem \
-	  	   -out $1certs/$2.cert.pem \
+		   -in ./intermediate/csr/$1.csr.pem \
+	  	   -out ./intermediate/certs/$1.cert.pem \
 		   -passin pass:password123
 
 chmod 640 $1certs/$2.cert.pem
 
 # Verify the certificate
 openssl x509 -noout -text \
-		-in $1certs/$2.cert.pem
+		-in ./intermediate/certs/$1.cert.pem

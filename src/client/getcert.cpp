@@ -17,8 +17,8 @@
 #include <openssl/x509.h>
 
 const int DEFAULT_PORT = 443;
-const char* DUMMY_CERT = "./dummy/cert.pem";
-const char* DUMMY_KEY = "./dummy/key.pem";
+const char* DUMMY_CERT = "./dummy/dummy.cert.pem";
+const char* DUMMY_KEY = "./dummy/dummy.key.pem";
 
 using namespace std;
 
@@ -33,7 +33,14 @@ int main(int argc, char **argv) {
 
 	string username = argv[1];
 	string password = getpass("Enter password");
-	
+
+	string certificateFile1 = "./certificates/" + username + ".cert.pem";
+	if (access(certificateFile1.c_str(), F_OK) != -1)
+	{
+		cerr << "Certificate file already exists, cannot call getcert twice" << endl;
+		return 1;	
+	}
+
 	SSL_CTX *ctx;
 	SSL *ssl;
 	const SSL_METHOD *meth;
@@ -48,6 +55,7 @@ int main(int argc, char **argv) {
 	if (tempfp == NULL)
 	{
 		cerr << "unable to open temp file" << endl;
+		return 1;
 	}
 
 	//create a temp file for input to the csr
@@ -68,6 +76,7 @@ int main(int argc, char **argv) {
 	if (inputfp == NULL)
 	{
 		cerr << "unable to open temp file" << endl;
+		return 1;
 	}
 
 	string bash = "#!/bin/bash\n\n";
@@ -163,14 +172,17 @@ int main(int argc, char **argv) {
 	meth = TLS_client_method();
 	ctx = SSL_CTX_new(meth);
     if (SSL_CTX_use_certificate_file(ctx, DUMMY_CERT, SSL_FILETYPE_PEM) <= 0) {
+        perror("unable to load dummy cert");
         exit(1);
     }
 
     if (SSL_CTX_use_PrivateKey_file(ctx, DUMMY_KEY, SSL_FILETYPE_PEM) <= 0) {
+        perror("unable to load dummy key");
         exit(1);
     }
 
 	if (!SSL_CTX_load_verify_locations(ctx, "./trusted_certs/ca-chain.cert.pem", NULL)) {
+        perror("unable to load chain file");
 		exit(1);
 	}
 
