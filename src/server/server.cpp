@@ -452,8 +452,8 @@ static int password_exec(void *fd){
       else if(pi == 0){
         //dup2(ppipe[0][1], STDOUT_FILENO);
         close(ppipe[0][1]);
-        return 0;
-        //execl("./passwords/bin/verify-pw", "verify-pw", user, password, (char*)0);
+        //return 0;
+        execl("./passwords/bin/verify-pw", "verify-pw", user, password, (char*)0);
         cout << errno << endl;
       }
       else {
@@ -479,8 +479,8 @@ static int password_exec(void *fd){
       else if(pi == 0){
         dup2(ppipe[0][1], STDOUT_FILENO);
         close(ppipe[0][1]);
-        return 0;
-        //execl("../passwords/change-pw", "change-pw", user, prev, curr, (char*)0);
+        //return 0;
+        execl("../passwords/change-pw", "change-pw", user, prev, curr, (char*)0);
       }
       else{
         waitpid(pi, &status, 0);
