@@ -86,7 +86,8 @@ cp getcert changepw sendmsg recvmsg createcsr intermediateopenssl.cnf selfsignce
 cd ../passwords
 make
 cp crypt-pw verify-pw add-user change-pw ../../$1/server/password/bin
-../../$1/server/password/bin/crypt-pw 
+cd ../../$1/server
+./password/bin/crypt-pw
 
 #copy the ca stuff into the structure
 cd ../../server/certificates
