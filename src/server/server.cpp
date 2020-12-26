@@ -17,7 +17,7 @@ namespace fs = std::filesystem;
 #define MAIL_FROM_MAX 12
 #define RCPT_TO_MAX 10
 
-const std::string mail_prefix = "./mail/";
+const std::string mail_prefix = "./mail/mail/";
 
 
 using namespace std;
@@ -206,7 +206,9 @@ int sendmsg(string user, vector<string> recips, ServerConnection &conn) {
   for(string rec : recips){
     header += rec + ",";
     write(cpipe[1][1], "getc", 4);
-    write(cpipe[1][1], rec.c_str(), 50);
+    char rec_c[50];
+    strncpy(rec_c, rec.c_str(), 50);
+    write(cpipe[1][1], rec_c, 50);
     char cert[8192];
     int l;
     read(cpipe[0][0], &l, sizeof(int));
@@ -220,8 +222,10 @@ int sendmsg(string user, vector<string> recips, ServerConnection &conn) {
   vector<char *> messages = conn.get_sendmsg_messages(recips.size(), sizes);
   int index = 0;
   for(string rec : recips){
+    char rec_c[50];
+    strncpy(rec_c, rec.c_str(), 50);
     write(mpipe[1][1], "send", 4);
-    write(mpipe[1][1], rec.c_str(), 50);
+    write(mpipe[1][1], rec_c, 50);
     int curr_len = header.size() + sizes[index];
     write(mpipe[1][1], &curr_len, sizeof(int));
     write(mpipe[1][1], header.c_str(), header.size());
@@ -231,9 +235,11 @@ int sendmsg(string user, vector<string> recips, ServerConnection &conn) {
   return 0;
 }
 
-void recvmsg(string user, ServerConnection &conn) {
+void recvmsg(string username, ServerConnection &conn) {
   write(mpipe[1][1], "recv", 4);
-  write(mpipe[1][1], user.c_str(), user.size());
+  char user[50];
+  strncpy(user, username.c_str(), 50);
+  write(mpipe[1][1], user, 50);
   int l;
   read(mpipe[0][0], &l, sizeof(int));
   if(l){
@@ -242,8 +248,10 @@ void recvmsg(string user, ServerConnection &conn) {
     string m(message, l);
     int new_line = m.find('\n');
     string sender = m.substr(0, new_line);
+    char sender_c[50];
+    strncpy(sender_c, sender.c_str(), 50);
     write(cpipe[1][1], "getc", 4);
-    write(cpipe[1][1], sender.c_str(), 50);
+    write(cpipe[1][1], sender_c, 50);
     char cert[8192];
     int len_cert;
     read(cpipe[0][0], &len_cert, sizeof(int));
@@ -293,22 +301,20 @@ int main(int argc, char **argv) {
     while (true) {
       conn.accept_client();
       string http_content = conn.recv();
+      cout << "---------" << endl << http_content << endl << "---------" << endl;
       BaseReq *req = parse_req(http_content);
       BaseResp *resp;
       if (req->type == GET_CERT) {
-        cout << "getcert called" << endl;
         GetCertReq gc_req = dynamic_cast<GetCertReq&>(*req);
         string cert = getcert(gc_req.username, gc_req.password, gc_req.csr);
         conn.send_string(cert);
         //resp = new CertResp(cert);
       } else if (req->type == CHANGE_PW) {
-        cout << "changepw called" << endl;
         ChangePWReq cp_req = dynamic_cast<ChangePWReq&>(*req);
         string cert = changepw(cp_req.username, cp_req.old_password, cp_req.new_password, cp_req.csr);
         conn.send_string(cert);
         //resp = new CertResp(cert);
       } else if (req->type == SEND_MSG) {
-        cout << "sendmsg called" << endl;
         SendMsgReq smu_req = dynamic_cast<SendMsgReq&>(*req);
         sendmsg(conn.get_common_name(), smu_req.usernames, conn);
         //resp = new MailCertResp("cert1\ncert2\ncert3");
@@ -317,7 +323,6 @@ int main(int argc, char **argv) {
         //string msg = conn.recv();
         //conn.send("OK");
       } else if (req->type == RECV_MSG) {
-        cout << "recvmsg called" << endl;
         RecvMsgReq rm_req = dynamic_cast<RecvMsgReq&>(*req);
         recvmsg(rm_req.username, conn);
         //resp = new MailResp("addleness\nwhaledom,wamara\n\nhello!!!\n");
@@ -367,7 +372,7 @@ static int mail_exec(void *fd){
   char instr[4];
   while(true){
     if(read(mpipe[1][0], instr, 4)<= 0){
-      //perror("ppipe closed");
+      perror("mpipe closed");
       break;
     }
     if(!strncmp(instr, "send", 4)){
@@ -377,9 +382,10 @@ static int mail_exec(void *fd){
       read(mpipe[1][0], &l, sizeof(int));
       char *message = (char*)malloc(l);
       read(mpipe[1][0], message, l);
+      string msg (message, l);
         string mail_box = user;
         if (!validMailboxChars(mail_box) || mail_box.length() > MAILBOX_NAME_MAX || !doesMailboxExist(mail_box)){
-          return 1;
+          continue; //error, how to handle?
         }
         string next_file_num = getNextNumber(mail_box);
         string mail_path = newMailPath(mail_box, next_file_num);
@@ -398,7 +404,6 @@ static int mail_exec(void *fd){
         perror("fork failed");
       }
       else if(pi==0){
-        cout << "out:" << user << ":" << endl;
         dup2(mpipe[0][1], STDOUT_FILENO);
         close(mpipe[0][1]);
         close(mpipe[1][0]);
@@ -413,6 +418,7 @@ static int mail_exec(void *fd){
       }
     }
     else {
+      perror("mpipe closed");
       break;
     }
   }
@@ -488,6 +494,7 @@ static int password_exec(void *fd){
       break;
     }
   }
+  cout << "closing ppipe" << endl;
   close(ppipe[1][0]);
   close(ppipe[0][1]);
 }
@@ -586,6 +593,7 @@ static int ca_exec(void *fd){
       break;
     }
   }
+  cout << "closing cpipe" << endl;
   close(cpipe[1][0]);
   close(cpipe[0][1]);
 }
