@@ -64,7 +64,7 @@ mkdir wamara
 mkdir whaledom
 
 cd ../../../client
-mkdir csr certs bin dummy
+mkdir csr certificates bin dummy csr/private
 
 #make everything and copy it into the correct locations
 cd ../../src/certificates
@@ -79,11 +79,11 @@ cd ../server
 make
 cp server ../../$1/server
 
-cd client
+cd ../client
 make
-cp getcert changepw sendmsg recvmsg createcsr intermediateopenssl.cnf selfsigncert.sh ../../../$1/client/bin
+cp getcert changepw sendmsg recvmsg createcsr intermediateopenssl.cnf selfsigncert.sh ../../$1/client/bin
 
-cd ../../passwords
+cd ../passwords
 make
 cp crypt-pw verify-pw add-user change-pw ../../$1/server/password/bin
 
