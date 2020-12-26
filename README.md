@@ -123,7 +123,7 @@ The SSL process (which acts as user nobody) gets and receives messages from the 
 The password process (which acts as user pass-writer) has permission to run verify-pw and change-pw (which again checks verify-pw)
 The certificate process (which acts as user cert-writer) has permission to create and get certificates, and is used to do so
 The mail process (which acts as user mail-writer) has permission to read from and write to the mail server
-All processes are blocked from doing any other action using namespaces and user namespaces
+All processes are blocked from doing any other action using namespaces and user namespaces. That is, the server process is sandboxed into only having access to networking, the password process can only read or write files in the password folder, the certificate process can only read or write files in the ca folder, and the mail process can only read or write files in the mail folder. By the principle of least privilege, this is the bare minimum amount of privilege each process can have and still achieve its designated tasks.
 The password process, certificate process, and mail process cannot communicate to each other, since they do not have access to the corresponding pipes.
 This way, the webserver process itself can only make well-defined requests to the processes which need to access any relevant file, and each of these processes are separated from each other. Ideally, these would all be on separate VMs.
 
