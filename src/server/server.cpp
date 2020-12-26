@@ -17,7 +17,7 @@ namespace fs = std::filesystem;
 #define MAIL_FROM_MAX 12
 #define RCPT_TO_MAX 10
 
-const std::string mail_prefix = "../../server/mail/";
+const std::string mail_prefix = "./mail/";
 
 
 using namespace std;
@@ -201,8 +201,6 @@ int sendmsg(string user, vector<string> recips, ServerConnection &conn) {
   {
     return -1;
   }
-  cout << "calling sendmsg" << endl;
-  cout << "this is called on user: " << user << endl << "recip: " << recips[0] << endl;
   conn.send("HTTP/1.0 200 OK\nContent-Length: idgaf\n");
   string header = user + "\n";
   for(string rec : recips){
@@ -231,29 +229,6 @@ int sendmsg(string user, vector<string> recips, ServerConnection &conn) {
     free(messages[index++]);
   }
   return 0;
-}
-
-string recvmsg_test(string user, string &cert_in) {
-  write(mpipe[1][1], "recv", 4);
-  write(mpipe[1][1], user.c_str(), user.size());
-  int l;
-  read(mpipe[0][0], &l, sizeof(int));
-  if(l){
-    char *message = (char*) malloc(l);
-    read(mpipe[0][0], message, l);
-    string m(message, l);
-    int new_line = m.find('\n');
-    string sender = m.substr(0, new_line);
-    write(cpipe[1][1], "getc", 4);
-    write(cpipe[1][1], sender.c_str(), 50);
-    char cert[8192];
-    int len_cert;
-    read(cpipe[0][0], &len_cert, sizeof(int));
-    read(cpipe[0][0], cert, len_cert);
-    string c(cert, len_cert);
-    cert_in = c;
-    return m;
-  }
 }
 
 void recvmsg(string user, ServerConnection &conn) {
@@ -288,9 +263,9 @@ int main(int argc, char **argv) {
     // }
     setup_spaces();
 
-    const char *CA_CERT = "../../server/certificates/ca/certs/ca.cert.pem"; // *(++argv);
-    const char *SERVER_CERT = "../../server/certificates/ca/intermediate/certs/localhost.cert.pem"; // *(++argv);
-    const char *SERVER_KEY = "../../server/certificates/ca/intermediate/private/localhost.key.pem"; // *(++argv);
+    const char *CA_CERT = "./ca/ca/certs/ca.cert.pem"; // *(++argv);
+    const char *SERVER_CERT = "./ca/ca/intermediate/certs/localhost.cert.pem"; // *(++argv);
+    const char *SERVER_KEY = "./ca/ca/intermediate/private/localhost.key.pem"; // *(++argv);
     
     ServerConnection conn = ServerConnection(CA_CERT, SERVER_CERT, SERVER_KEY);
     pid_t p = fork();
@@ -316,7 +291,6 @@ int main(int argc, char **argv) {
     cout << received << endl << endl;
     cout << cert << endl;*/
     while (true) {
-      cout << "is this happening? it shouldn't be" << endl;
       conn.accept_client();
       string http_content = conn.recv();
       BaseReq *req = parse_req(http_content);
@@ -328,12 +302,7 @@ int main(int argc, char **argv) {
         //resp = new CertResp(cert);
       } else if (req->type == CHANGE_PW) {
         ChangePWReq cp_req = dynamic_cast<ChangePWReq&>(*req);
-        cout << "user:" << cp_req.username << endl;
-        cout << "old:" << cp_req.old_password << endl;
-        cout << "new:" << cp_req.new_password << endl;
-        cout << "csr:" << endl << cp_req.csr << endl;
         string cert = changepw(cp_req.username, cp_req.old_password, cp_req.new_password, cp_req.csr);
-        cout << "cert:" << endl << cert << endl;
         conn.send_string(cert);
         //resp = new CertResp(cert);
       } else if (req->type == SEND_MSG) {
@@ -427,7 +396,7 @@ static int mail_exec(void *fd){
         dup2(mpipe[0][1], STDOUT_FILENO);
         close(mpipe[0][1]);
         close(mpipe[1][0]);
-        execl("../mail/get-msg", "get-msg", user, (char*)0);
+        execl("./mail/bin/get-msg", "get-msg", user, (char*)0);
       }
       else {
         int status;
@@ -469,8 +438,8 @@ static int password_exec(void *fd){
       else if(pi == 0){
         //dup2(ppipe[0][1], STDOUT_FILENO);
         close(ppipe[0][1]);
-        //return 0;
-        execl("../passwords/verify-pw", "verify-pw", user, password, (char*)0);
+        return 0;
+        //execl("./passwords/bin/verify-pw", "verify-pw", user, password, (char*)0);
         cout << errno << endl;
       }
       else {
@@ -538,9 +507,9 @@ static int ca_exec(void *fd){
       else if(pi == 0){
         dup2(cpipe[0][1], STDOUT_FILENO);
         close(cpipe[0][1]);
-        string location = "../../server/certificates/ca/intermediate/certs/";
+        string location = "./ca/ca/intermediate/certs/";
         location += user;
-        execl("../certificates/get-cert", "get-cert", location.c_str(), (char*)0);
+        execl("./ca/bin/get-cert", "get-cert", location.c_str(), (char*)0);
       }
       else{
         waitpid(pi, &status, 0);
@@ -555,7 +524,7 @@ static int ca_exec(void *fd){
       int status;
       
       string index_txt = "", line;
-      ifstream ifs ("../../server/certificates/ca/intermediate/index.txt", ifstream::in);
+      ifstream ifs ("./ca/ca/intermediate/index.txt", ifstream::in);
       string to_find = "CN=";
       to_find += user;
       while (getline(ifs, line))
@@ -570,7 +539,7 @@ static int ca_exec(void *fd){
             }
       }
       ifs.close();
-      ofstream ofs ("../../server/certificates/ca/intermediate/index.txt", ofstream::out);
+      ofstream ofs ("./ca/ca/intermediate/index.txt", ofstream::out);
       ofs << index_txt;
       ofs.close();
       
@@ -583,7 +552,7 @@ static int ca_exec(void *fd){
         read(cpipe[1][0], &length, sizeof(int));
         char *req = (char *)malloc(length);
         read(cpipe[1][0], req, length);
-        string location = "../../server/certificates/ca/intermediate/";
+        string location = "./ca/ca/intermediate/";
         string name = location + "csr/" + user;
         name += ".csr.pem";
         FILE *csr = fopen(name.c_str(), "w");
@@ -594,7 +563,7 @@ static int ca_exec(void *fd){
         fread(req, 1, length, csr);
         free(req);
         fclose(csr);
-        execl("../../server/certificates/signcsr.sh", "signcsr.sh", location.c_str(), user, (char*)0);
+        execl("./ca/bin/signcsr.sh", "signcsr.sh", location.c_str(), user, (char*)0);
       }
       else{
         waitpid(pi, &status, 0);

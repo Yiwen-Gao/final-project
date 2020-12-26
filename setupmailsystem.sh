@@ -25,25 +25,64 @@ make
 cd ../../
 
 # server - ca
-mkdir $1/server/ca $1/server/ca/bin
-cp src/certificates/{intermediateopenssl.cnf,openssl.cnf} $1/server/ca
-cp src/certificates/{issueservercert.sh,get-cert,setupca.sh,signcsr.sh} $1/server/ca/bin
+mkdir $1/server/ca $1/server/ca/bin $1/server/ca/ca
+cp src/certificates/{casetupinput.txt,dummyinput.txt,intermediateopenssl.cnf,openssl.cnf,serverinput.txt} $1/server/ca
+cp src/certificates/{issueclientcert.sh,issueservercert.sh,get-cert,setupca.sh,signcsr.sh} $1/server/ca/bin
 
-# issue the dummy certificate and copy into the appropriate location
-$1/server/ca/bin/issueservercert.sh dummy < src/certificates/dummyinput.txt
-# cp ./ca/intermediate/certs/dummy.cert.pem ./ca/intermediate/private/dummy.key.pem ../../client/dummy
+cd $1/server/ca
 # setup the ca within the ca directory
-mkdir $1/server/ca/ca
-$1/server/bin/setupca.sh < src/certificates/casetupinput.txt
+./bin/setupca.sh < casetupinput.txt
+# issue server cert
+./bin/issueservercert.sh localhost < serverinput.txt
+# # issue client cert
+./bin/issueclientcert.sh dummy < dummyinput.txt
+cd ../../../
 
 # server - mail
-cd src/mail
-./create-tree temp
-make TREE=temp
+# create mailboxes
+mkdir $1/server/mail 
+cd $1/server/mail
+mkdir addleness
+mkdir analects
+mkdir annalistic
+mkdir anthropomorphologically
+mkdir blepharosphincterectomy
+mkdir corector
+mkdir durwaun
+mkdir dysphasia
+mkdir encampment
+mkdir endoscopic
+mkdir exilic
+mkdir forfend
+mkdir gorbellied
+mkdir gushiness
+mkdir muermo
+mkdir neckar
+mkdir outmate
+mkdir outroll
+mkdir overrich
+mkdir philosophicotheological
+mkdir pockwood
+mkdir polypose
+mkdir refluxed
+mkdir reinsure
+mkdir repine
+mkdir scerne
+mkdir starshine
+mkdir unauthoritativeness
+mkdir unminced
+mkdir unrosed
+mkdir untranquil
+mkdir urushinic
+mkdir vegetocarbonaceous
+mkdir wamara
+mkdir whaledom
+
+cd ../../../src/mail
+make
 
 cd ../../
-mkdir $1/server/mail 
-cp -r src/mail/temp/* $1/server/mail 
+cp -r src/mail/get-msg $1/server/mail/get-msg
 
 # server - passwords
 cd src/passwords
@@ -60,15 +99,22 @@ cd src/server
 make
 
 cd ../../
-cp src/server/server $1/server
+cp src/server/server $1/server/ca/bin
 
-# client - main programs
+# client - certs
+mkdir $1/client/{certs,csr,dummy,trusted_certs} $1/client/csr/private
+cd $1/server/ca
+# copy the trusted certs from server to client
+cp ./ca/certs/ca.cert.pem ./ca/intermediate/certs/{intermediate.cert.pem,ca-chain.cert.pem} ../../client/trusted_certs
+# copy dummy info from server to client
+cp ./ca/intermediate/certs/dummy.cert.pem ../../client/dummy/cert.pem
+cp ./ca/intermediate/private/dummy.key.pem ../../client/dummy/key.pem
+cd ../../../
+
+# client - main program
 cd src/client
 make
 
 cd ../../
-mkdir $1/client/bin 
-cp src/client/{getcert,changepw,createcsr,sendmsg,recvmsg} $1/client/bin
-
-# client - certs
-mkdir $1/client/{certs,csr,dummy,trusted_certs} $1/client/csr/private
+mkdir $1/client/bin
+cp src/client/{changepw,createcsr,getcert,recvmsg,sendmsg} $1/client/bin

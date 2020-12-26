@@ -17,7 +17,6 @@
 #include <openssl/x509.h>
 
 const int DEFAULT_PORT = 443;
-const std::string TRUSTED = "./trusted_certificates/";
 const char* DUMMY_CERT = "./dummy/cert.pem";
 const char* DUMMY_KEY = "./dummy/key.pem";
 
@@ -74,7 +73,7 @@ int main(int argc, char **argv) {
 	string bash = "#!/bin/bash\n\n";
 	fwrite(bash.c_str(), sizeof(char), bash.length(), inputfp);
 	
-	string command = "./createcsr " + username + " " + password + " " + "< temp\n";
+	string command = "./bin/createcsr " + username + " " + password + " " + "< temp\n";
 	fwrite(command.c_str(), sizeof(char), command.length(), inputfp);
 
 	chmod("input.sh", S_IXGRP | S_IXUSR | S_IXOTH | S_IRGRP | S_IRUSR | S_IWUSR); 
