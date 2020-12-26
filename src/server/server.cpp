@@ -354,6 +354,8 @@ static void prepare_mntns(char *rootfs)
 }
 
 static int mail_exec(void *fd){
+  struct passwd *pw = getpwnam("mail-writer");
+  setuid((int)pw->pw_uid);
   //prepare_mntns("/mail/");
   //int **p = *((int ***)fd);
   close(mpipe[0][0]);
@@ -415,6 +417,8 @@ static int mail_exec(void *fd){
 }
 
 static int password_exec(void *fd){
+  struct passwd *pw = getpwnam("pass-writer");
+  setuid((int)pw->pw_uid);
   //prepare_mntns("../../server/passwords/");
   //int **p = *((int ***)fd);
   close(ppipe[0][0]);
@@ -485,6 +489,8 @@ static int password_exec(void *fd){
 }
 
 static int ca_exec(void *fd){
+  struct passwd *pw = getpwnam("cert-writer");
+  setuid((int)pw->pw_uid);
   //prepare_mntns("../../server/certificates/");
   //int **p = *((int ***)fd);
   close(cpipe[0][0]);
