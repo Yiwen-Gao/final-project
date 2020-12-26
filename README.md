@@ -85,7 +85,7 @@ All executables and data are inside `<mail_system_name>/`.
       - `dummy.cert.pem`: dummy certificate for `getcert` 
       - `dummy.key.pem`: dummy key for `getcert`
 - `server/`: server-side executables and data
-  - `ca/`: certificate authentication
+  - `ca/`: certificate authentication - owned by cert-writer (chmod 700)
       - `bin/`: executables
         - `get-cert`: create new client certificate
         - `issueservercert.sh`: create server certificate
@@ -98,13 +98,13 @@ All executables and data are inside `<mail_system_name>/`.
     - `dummyinput.txt`: MISSING
     - `intermediateopenssl.cnf`: intermediate certificate configuration
     - `openssl.cnf`: CA configuration
-  - `mail/`: read and write messages
+  - `mail/`: read and write messages - owned by mail-writer (chmod 700)
     - `bin/`: executables
       - `get-msg`: read message from user mailbox
       - MISSING `mail-in`: format message for writing
       - MISSING `mail-out`: write message to user mailbox
     - `mail/`: user mailboxes
-  - `password/`: password authentication
+  - `password/`: password authentication - owned by pass-writer (chmod 700)
     - `bin/`: executables
       - `add-user`: add new user to mail system
       - `change-pw`: change user password
@@ -115,5 +115,15 @@ All executables and data are inside `<mail_system_name>/`.
 
 ## Permissions
 
-## Containerization
+## Server Structure and Containerization
 
+Containers are implemented using linux namespaces.
+
+The server consists of four processes, owned by 3 users + nobody.
+The SSL process (which acts as user nobody) gets and receives messages from the client and passes requests (using pipes) to the appropriate secondary process. This is the only process with permission to use networking.
+The password process (which acts as user pass-writer) has permission to run verify-pw and change-pw (which again checks verify-pw)
+The certificate process (which acts as user cert-writer) has permission to create and get certificates, and is used to do so
+The mail process (which acts as user mail-writer) has permission to read from and write to the mail server
+All processes are blocked from doing any other action using namespaces and user namespaces
+The password process, certificate process, and mail process cannot communicate to each other, since they do not have access to the corresponding pipes.
+This way, the webserver process itself can only make well-defined requests to the processes which need to access any relevant file, and each of these processes are separated from each other. Ideally, these would all be on separate VMs.
