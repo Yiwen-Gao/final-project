@@ -90,9 +90,9 @@ make
 ./crypt-pw 
 
 cd ../../
-mkdir $1/server/passwords $1/server/passwords/bin
-cp src/passwords/passwords.txt $1/server/passwords
-cp src/passwords/{add-user,change-pw,verify-pw} $1/server/passwords/bin
+mkdir $1/server/password $1/server/password/bin
+cp src/password/passwords.txt $1/server/password
+cp src/password/{add-user,change-pw,verify-pw} $1/server/password/bin
 
 # server - main program
 cd src/server
