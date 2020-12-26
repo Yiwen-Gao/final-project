@@ -408,6 +408,7 @@ static int mail_exec(void *fd){
         close(mpipe[0][1]);
         close(mpipe[1][0]);
         execl("./mail/bin/get-msg", "get-msg", user, (char*)0);
+        exit(-1);
       }
       else {
         int status;
@@ -454,7 +455,7 @@ static int password_exec(void *fd){
         close(ppipe[0][1]);
         //return 0;
         execl("./passwords/bin/verify-pw", "verify-pw", user, password, (char*)0);
-        cout << errno << endl;
+        exit(-1);
       }
       else {
         waitpid(pi, &status, 0);
@@ -481,6 +482,7 @@ static int password_exec(void *fd){
         close(ppipe[0][1]);
         //return 0;
         execl("../passwords/change-pw", "change-pw", user, prev, curr, (char*)0);
+        exit(-1);
       }
       else{
         waitpid(pi, &status, 0);
@@ -527,6 +529,7 @@ static int ca_exec(void *fd){
         string location = "./ca/ca/intermediate/certs/";
         location += user;
         execl("./ca/bin/get-cert", "get-cert", location.c_str(), (char*)0);
+        exit(-1);
       }
       else{
         waitpid(pi, &status, 0);
@@ -581,6 +584,7 @@ static int ca_exec(void *fd){
         free(req);
         fclose(csr);
         execl("./ca/bin/signcsr.sh", "signcsr.sh", user, (char*)0);
+        exit(-1);
       }
       else{
         waitpid(pi, &status, 0);
