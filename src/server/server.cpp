@@ -133,21 +133,25 @@ string getcert(string username, string password, string csr) {
 
 
 string changepw(string username, string old_password, string new_password, string csr) {
-  if (!isMailEmpty(username))
-  {
-    return "";
-  }
   char user[50];
   char old_pass[100];
   strncpy(user, username.c_str(), 50);
   strncpy(old_pass, old_password.c_str(), 100);
   char new_pass[100];
   strncpy(new_pass, new_password.c_str(), 100);
+
+  write(mpipe[1][1], "empt", 4);
+  write(mpipe[1][1], user, 50);
+  int result;
+  read(mpipe[0][0], &result, sizeof(int));
+  if(!result){
+    return "";
+  }
+
   write(ppipe[1][1], "setp", 4);
   write(ppipe[1][1], user, 50);
   write(ppipe[1][1], old_pass, 100);
   write(ppipe[1][1], new_pass, 100);
-  int result;
   read(ppipe[0][0], &result, sizeof(int));
   if(!result){
     write(cpipe[1][1], "make", 4);
@@ -417,6 +421,13 @@ static int mail_exec(void *fd){
           perror("failed to get mail");
         }
       }
+    }
+    else if(!strncmp(instr, "empt", 4)){
+        char user[50];
+        read(mpipe[1][0], user, 50);
+        string username(user);
+        int l = isMailEmpty(username);
+        write(mpipe[0][1], &l, sizeof(int));
     }
     else {
       perror("mpipe closed");
